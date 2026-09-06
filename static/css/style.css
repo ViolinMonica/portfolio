@@ -6,7 +6,7 @@
 
 :root {
     --ink: #1c1917;
-    --paper: #faf6f0;
+    --paper: #3d3425;
     --accent: #d95d39;
     --accent-dark: #a8442a;
     --line: #e3d9c9;
@@ -192,4 +192,82 @@ h1, .brand {
     .social-links {
         justify-content: flex-start;
     }
+}
+
+.skills,
+.projects {
+    padding: 3.5rem 0;
+    border-top: 1px solid var(--line);
+}
+
+.section-kicker {
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.section-title {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 2rem;
+    margin-bottom: 1.75rem;
+}
+
+/* Skills */
+.skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.skill-pill {
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.5rem 1.1rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--ink);
+    background-color: transparent;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.skill-pill:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* Projects */
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 2rem;
+}
+
+.project-card {
+    position: relative;
+    padding: 1.5rem;
+    border: 3px solid var(--ink);
+    border-radius: var(--radius);
+    background-color: var(--paper);
+    box-shadow: 8px 8px 0 var(--accent);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.project-card:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: 12px 12px 0 var(--accent);
+}
+
+.project-card h3 {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.project-card p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 1.25rem;
 }
