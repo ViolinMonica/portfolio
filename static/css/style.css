@@ -52,6 +52,9 @@ h1, .brand {
 .site-header nav {
     display: flex;
     gap: 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .site-header nav a {
@@ -215,21 +218,33 @@ h1, .brand {
     margin-bottom: 1.75rem;
 }
 
-/* Skills */
+/* Skills, grouped */
+.skills-groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 2rem;
+}
+
+.skill-group h3 {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 1rem;
+    color: var(--accent-dark);
+    margin-bottom: 0.75rem;
+}
+
 .skills-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: 0.5rem;
 }
 
 .skill-pill {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 600;
-    padding: 0.5rem 1.1rem;
+    padding: 0.4rem 0.9rem;
     border: 1px solid var(--line);
     border-radius: 999px;
     color: var(--ink);
-    background-color: transparent;
     transition: border-color 0.2s ease, color 0.2s ease;
 }
 
@@ -238,16 +253,16 @@ h1, .brand {
     color: var(--accent);
 }
 
-/* Projects */
-.projects-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 2rem;
+/* Projects, timeline-style cards */
+.projects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
 }
 
 .project-card {
     position: relative;
-    padding: 1.5rem;
+    padding: 1.5rem 1.75rem;
     border: 3px solid var(--ink);
     border-radius: var(--radius);
     background-color: var(--paper);
@@ -260,14 +275,47 @@ h1, .brand {
     box-shadow: 12px 12px 0 var(--accent);
 }
 
-.project-card h3 {
-    font-family: "Space Grotesk", sans-serif;
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
+.project-card__when {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent-dark);
+    margin-bottom: 0.4rem;
 }
 
-.project-card p {
+.project-card h3 {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 1.15rem;
+    margin-bottom: 0.25rem;
+}
+
+.project-card__org {
     color: var(--text-muted);
     font-size: 0.9rem;
-    margin-bottom: 1.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.project-card__desc {
+    margin: 0 0 1rem 1.1rem;
+    font-size: 0.92rem;
+}
+
+.project-card__desc li {
+    margin-bottom: 0.25rem;
+}
+
+.project-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.tag {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    background-color: var(--ink);
+    color: var(--paper);
 }
