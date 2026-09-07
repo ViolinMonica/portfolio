@@ -391,34 +391,36 @@ h1, .brand {
     appearance: none;
     -webkit-appearance: none;
 
-    background-color: #f5f0e8;
-    color: #1a1a1a;
+    background-color: var(--paper);
+    color: var(--ink);
 
-    border: 2px solid #1a1a1a;
-    border-radius: 8px;
+    border: 2px solid var(--ink);
+    border-radius: var(--radius);
 
-    padding: 12px 45px 12px 16px;
+    padding: 0.7rem 2.8rem 0.7rem 1rem;
 
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+
     cursor: pointer;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231a1a1a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231c1917' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 14px center;
-    background-size: 16px;
+    background-position: right 0.8rem center;
+    background-size: 1rem;
 
     transition: all 0.2s ease;
 }
 
 #skill-filter:hover {
-    background-color: #1a1a1a;
-    color: #f5f0e8;
-
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: var(--paper);
     transform: translateY(-2px);
 }
 
 #skill-filter:focus {
     outline: none;
-    box-shadow: 4px 4px 0 #1a1a1a;
+    box-shadow: 4px 4px 0 var(--accent);
 }
