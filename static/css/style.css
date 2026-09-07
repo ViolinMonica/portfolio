@@ -277,11 +277,6 @@ h1, .brand {
     vertical-align: -2px;
 }
 
-.skill-pill--more {
-    color: var(--text-muted);
-    border-style: dashed;
-}
-
 @media (max-width: 600px) {
     .skills {
         padding: 3rem 0;
@@ -300,6 +295,7 @@ h1, .brand {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 2rem;
+    align-items: start;
 }
 
 .project-card {
@@ -344,17 +340,6 @@ h1, .brand {
     color: #8a8a8a;
     margin-bottom: 0.9rem;
     text-align: justify;
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.card-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
 }
 
 .card-link {
