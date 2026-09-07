@@ -1,17 +1,25 @@
+/* ============================================
+   RESET & GLOBAL SETUP
+   ============================================ */
+
+/* Reset default margin/padding browser & samain box-sizing,
+   biar padding/border nggak nambah lebar total elemen */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/* CSS variables (custom properties) buat tema warna terpusat.
+   Ganti warna di sini otomatis ke-apply ke semua elemen yang pakai var(--nama) */
 :root {
-    --ink: #1c1917;
-    --paper: #faf6ee;
-    --accent: #d95d39;
-    --accent-dark: #a8442a;
-    --line: #e3d9c9;
-    --text-muted: #6b6459;
-    --radius: 4px;
+    --ink: #1c1917;         /* warna teks utama / gelap */
+    --paper: #faf6ee;       /* warna background halaman */
+    --accent: #d95d39;      /* warna aksen (hover, highlight) */
+    --accent-dark: #a8442a; /* varian aksen lebih gelap, dipakai buat label kecil */
+    --line: #e3d9c9;        /* warna garis pembatas/border tipis */
+    --text-muted: #6b6459;  /* warna teks sekunder (kurang penting) */
+    --radius: 4px;          /* radius sudut membulat standar */
 }
 
 body {
@@ -21,15 +29,21 @@ body {
     line-height: 1.6;
 }
 
+/* Font khusus buat judul besar & nama brand, beda dari font body biasa */
 h1, .brand {
     font-family: "Space Grotesk", -apple-system, sans-serif;
 }
 
+/* Wrapper pembatas lebar konten, dipakai berulang di tiap section */
 .container {
     max-width: 960px;
-    margin: 0 auto;
+    margin: 0 auto; /* bikin konten ke-tengah horizontal */
     padding: 0 1.5rem;
 }
+
+/* ============================================
+   HEADER / NAVBAR
+   ============================================ */
 
 .site-header {
     border-bottom: 1px solid var(--line);
@@ -37,7 +51,7 @@ h1, .brand {
 
 .site-header .container {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; /* logo kiri, menu kanan */
     align-items: center;
     padding: 1.25rem 1.5rem;
 }
@@ -52,9 +66,9 @@ h1, .brand {
 .site-header nav {
     display: flex;
     gap: 2rem;
-    position: sticky;
+    position: sticky; /* navbar nempel di atas layar pas discroll */
     top: 0;
-    z-index: 100;
+    z-index: 100; /* pastiin selalu di lapisan paling atas */
 }
 
 .site-header nav a {
@@ -63,23 +77,35 @@ h1, .brand {
     font-size: 0.95rem;
 }
 
+/* ============================================
+   JUDUL SECTION (dipakai di Skills & Projects)
+   ============================================ */
+
 .section-header {
     margin-bottom: 3rem;
 }
 
 .section-header h2 {
     font-family: "Space Grotesk", -apple-system, sans-serif;
+    /* clamp(min, ideal, max): ukuran font otomatis menyesuaikan lebar layar,
+       nggak akan lebih kecil dari 2.2rem atau lebih besar dari 3.5rem */
     font-size: clamp(2.2rem, 5vw, 3.5rem);
     line-height: 0.95;
 }
+
+/* ============================================
+   HERO SECTION (Profile)
+   ============================================ */
 
 .hero {
     padding: 4.5rem 0 5rem;
 }
 
+/* Layout utama hero pakai CSS Grid dengan named areas,
+   biar gampang atur posisi identity/photo/details kayak "peta" */
 .hero-grid {
     display: grid;
-    grid-template-columns: 1.3fr 1fr;
+    grid-template-columns: 1.3fr 1fr; /* kolom kiri lebih lebar dari kanan */
     grid-template-areas:
     "identity photo"
     "details  photo";
@@ -94,6 +120,7 @@ h1, .brand {
     grid-area: details;
 }
 
+/* Label kecil di atas judul (misal "Computer Science · Universitas Indonesia") */
 .hero-kicker {
     font-size: 0.85rem;
     letter-spacing: 0.08em;
@@ -110,11 +137,12 @@ h1, .brand {
 
 .bio {
     color: var(--text-muted);
-    max-width: 480px;
+    max-width: 480px; /* batasi lebar biar baris teks nggak kepanjangan */
     margin-bottom: 1.5rem;
     text-align: justify;
 }
 
+/* Baris NPM & Program disusun sejajar horizontal pakai flexbox */
 .meta-list {
     display: flex;
     gap: 2rem;
@@ -133,14 +161,18 @@ h1, .brand {
     font-weight: 600;
 }
 
+/* ============================================
+   SOCIAL LINKS (GitHub, LinkedIn, Email)
+   ============================================ */
+
 .social-links {
     display: flex;
     gap: 0.5rem;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* biar pindah baris otomatis kalau kepanjangan */
 }
 
 .social-link {
-    display: inline-flex;
+    display: inline-flex; /* biar icon & teks sejajar rapi */
     align-items: center;
     gap: 0.4rem;
     font-size: 0.85rem;
@@ -153,10 +185,15 @@ h1, .brand {
     transition: background-color 0.2s ease;
 }
 
+/* Icon devicon (font icon <i>) ukurannya diatur pakai font-size, bukan width/height.
+   Class "colored" sengaja TIDAK dipakai di sini, biar icon ikut warna teks
+   (var(--paper)) otomatis, bukan warna resmi brand-nya (yang bisa item di background gelap) */
 .social-link i {
     font-size: 1rem;
 }
 
+/* Icon gambar asli (<img>, dipakai buat Gmail) ukurannya diatur manual width/height,
+   beda cara dari font icon di atas */
 .social-link img {
     width: 16px;
     height: 16px;
@@ -166,12 +203,18 @@ h1, .brand {
     background-color: var(--accent);
 }
 
+/* ============================================
+   FOTO PROFIL (efek kartu bertumpuk)
+   ============================================ */
+
 .hero-photo {
     grid-area: photo;
     align-self: center;
-    position: relative;
+    position: relative; /* jadi acuan posisi buat .photo-block di bawahnya */
 }
 
+/* Kotak warna oranye di belakang foto, digeser dikit pakai top/left
+   biar keliatan efek "bayangan warna" nongol di sudut foto */
 .photo-block {
     position: absolute;
     top: 1.25rem;
@@ -180,19 +223,23 @@ h1, .brand {
     height: 100%;
     background-color: var(--accent);
     border-radius: var(--radius);
-    z-index: 0;
+    z-index: 0; /* di belakang foto asli */
 }
 
 .avatar {
     position: relative;
-    z-index: 1;
+    z-index: 1; /* di depan .photo-block */
     display: block;
     width: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
+    aspect-ratio: 1 / 1; /* selalu kotak persegi apapun ukuran gambar aslinya */
+    object-fit: cover;   /* biar foto nggak gepeng, dipotong rapi ngisi kotak */
     border-radius: var(--radius);
     border: 3px solid var(--ink);
 }
+
+/* ============================================
+   FOOTER
+   ============================================ */
 
 .site-footer {
     padding: 1.5rem;
@@ -201,7 +248,13 @@ h1, .brand {
     border-top: 1px solid var(--line);
 }
 
+/* ============================================
+   RESPONSIVE: LAYAR KECIL (HP, max 600px)
+   ============================================ */
+
 @media (max-width: 600px) {
+    /* Grid hero yang tadinya 2 kolom (foto & teks berdampingan)
+       diubah jadi 1 kolom, ditumpuk vertikal: identity -> photo -> details */
     .hero-grid {
         grid-template-columns: 1fr;
         grid-template-areas:
@@ -219,16 +272,26 @@ h1, .brand {
     }
 }
 
+/* ============================================
+   SKILLS SECTION
+   ============================================ */
+
 .skills {
     padding: 4.5rem 0;
     border-top: 1px solid var(--line);
 }
 
+/* Grid otomatis: browser hitung sendiri muat berapa kolom
+   berdasarkan lebar layar, minimal tiap kolom 240px */
 .skills .container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 1.5rem;
 }
+
+/* Catatan: .section-header di section ini butuh "grid-column: 1 / -1"
+   biar melebar penuh nutupin semua kolom grid, bukan ikut nyempit
+   kayak 1 skill-category. (cek CSS section-header di atas kalau berubah) */
 
 .skill-category {
     border: 1px solid var(--line);
@@ -245,6 +308,7 @@ h1, .brand {
     margin-bottom: 0.9rem;
 }
 
+/* Kumpulan skill-pill disusun sejajar & otomatis pindah baris kalau penuh */
 .skill-list {
     display: flex;
     flex-wrap: wrap;
@@ -274,18 +338,22 @@ h1, .brand {
     color: var(--paper);
 }
 
+/* Font icon devicon di dalam pill, ukuran pakai font-size */
 .skill-pill i {
     font-size: 1rem;
 }
 
+/* Emoji bendera di skill Languages, disamain ukurannya sama icon lain */
 .skill-pill .flag {
     font-size: 1rem;
 }
 
+/* Icon gambar asli (Burp Suite, Wireshark, dll) di dalam pill,
+   ukuran pakai width/height, bukan font-size */
 .skill-pill .tool-icon {
     width: 1rem;
     height: 1rem;
-    vertical-align: -2px;
+    vertical-align: -2px; /* geser dikit biar sejajar center sama teks */
 }
 
 @media (max-width: 600px) {
@@ -294,14 +362,19 @@ h1, .brand {
     }
     
     .skills .container {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* 1 kolom penuh di HP */
     }
 }
 
+/* ============================================
+   PROJECTS SECTION
+   ============================================ */
+
 .projects {
-    padding-bottom: 4rem;
+    padding-bottom: 4rem; /* jarak ke footer, ditaruh di section bukan per-card */
 }
 
+/* Grid responsive otomatis, sama konsepnya kayak .skills .container */
 .project-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -313,14 +386,14 @@ h1, .brand {
     background-color: #ffffff;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
+    overflow: hidden; /* biar gambar ikut kepotong sudut membulat card */
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* gambar di atas, body di bawah */
 }
 
 .card-image-wrap {
     position: relative;
-    height: 160px;
+    height: 160px; /* tinggi tetap, gambar apapun ukurannya di-crop rapi */
     overflow: hidden;
 }
 
@@ -335,7 +408,7 @@ h1, .brand {
     padding: 1rem 1.1rem 1.2rem;
     display: flex;
     flex-direction: column;
-    flex: 1;
+    flex: 1; /* ngisi sisa tinggi card, biar tombol selalu di bawah */
 }
 
 .card-title {
@@ -352,20 +425,21 @@ h1, .brand {
     text-align: justify;
 }
 
+/* Baris tombol "View Project" + icon GitHub */
 .card-link {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin-top: auto;
+    margin-top: auto; /* dorong baris ini selalu nempel ke bawah card */
 }
 
 .project-link {
-    flex: 1;
+    flex: 1; /* ambil sisa ruang, icon GitHub di sebelahnya ukuran tetap */
     text-align: center;
     text-decoration: none;
     background-color: #111111;
     color: #ffffff;
-    border-radius: 999px;
+    border-radius: 999px; /* angka gede = bulat penuh, jadi bentuk pill */
     padding: 0.75rem 0;
     font-size: 0.8rem;
     font-weight: 600;
@@ -380,12 +454,12 @@ h1, .brand {
     text-decoration: none;
     width: 44px;
     height: 44px;
-    flex-shrink: 0;
-    border-radius: 50%;
+    flex-shrink: 0; /* ukuran tetap, nggak ikut ngecil pas ruang sempit */
+    border-radius: 50%; /* jadi lingkaran penuh */
     border: 1px solid var(--line);
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: center; /* icon center di dalam lingkaran */
     transition: background-color 0.2s ease;
 }
 
@@ -398,33 +472,41 @@ h1, .brand {
     color: var(--ink);
 }
 
+/* ============================================
+   DROPDOWN FILTER SKILL
+   ============================================ */
+
 #skill-filter {
+    /* Hilangin tampilan default browser (termasuk panah bawaan),
+       biar bisa didesain manual dari nol */
     appearance: none;
     -webkit-appearance: none;
     background-color: var(--paper);
     color: var(--ink);
     border: 2px solid var(--ink);
     border-radius: var(--radius);
-    padding: 0.7rem 2.8rem 0.7rem 1rem;
+    padding: 0.7rem 2.8rem 0.7rem 1rem; /* padding kanan dilebihin buat ruang panah custom */
     font-family: "Space Grotesk", sans-serif;
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
+    /* Panah dropdown custom, dibikin dari SVG yang di-encode langsung ke CSS
+       (data URI), jadi nggak perlu request file gambar terpisah */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231c1917' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.8rem center;
     background-size: 1rem;
     transition: all 0.2s ease;
-    box-shadow: 4px 4px 0 var(--accent);
+    box-shadow: 4px 4px 0 var(--accent); /* efek shadow "keras", bukan blur biasa */
 }
 
 #skill-filter:hover {
     background-color: var(--accent);
     border-color: var(--accent);
     color: var(--paper);
-    transform: translateY(-2px);
+    transform: translateY(-2px); /* naik dikit pas di-hover */
 }
 
 #skill-filter:focus {
-    outline: none;
+    outline: none; /* hilangin outline default browser pas di-klik/fokus */
 }

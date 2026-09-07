@@ -4,14 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Violin Monica - Portfolio</title>
-    
+
+    <!-- Font "Space Grotesk" dari Google Fonts, dipakai buat nama & judul section -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="/static/css/style.css">
+
+    <!-- Devicon: library font icon buat logo bahasa pemrograman & tools (Python, Git, dll) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon/devicon.min.css">
 </head>
 <body>
+
+    <!-- ============================================
+         HEADER / NAVBAR
+         ============================================ -->
     <header class="site-header">
         <div class="container">
             <a href="#profile" class="brand">Violin Monica.</a>
@@ -22,20 +30,32 @@
             </nav>
         </div>
     </header>
-    
+
     <main>
+
+        <!-- ============================================
+             HERO SECTION — identitas & profil singkat
+             ============================================ -->
         <section class="hero" id="profile">
             <div class="container hero-grid">
+
+                <!-- Kolom kiri-atas: label kecil + nama -->
                 <div class="hero-identity">
                     <p class="hero-kicker">Computer Science &middot; Universitas Indonesia</p>
                     <h1>Violin Monica</h1>
                 </div>
+
+                <!-- Kolom kanan: foto dengan efek kartu bertumpuk (lihat .photo-block di CSS) -->
                 <div class="hero-photo">
                     <div class="photo-block"></div>
-                    <img class="avatar" src="/static/img/images.jpg" alt="Photo of Violin">
+                    <img class="avatar" src="/static/img/profile.jpg" alt="Photo of Violin">
                 </div>
+
+                <!-- Kolom kiri-bawah: bio, data diri (NPM/Program), dan link sosial -->
                 <div class="hero-details">
                     <p class="bio">Computer Science student at Universitas Indonesia with a growing expertise in Cybersecurity and Data Science. I thrive at the intersection of rigorous logic and creative problem-solving. I am passionate about uncovering vulnerabilities and leveraging data to build secure, impactful solutions. Always open to discussing tech trends, security research, or potential collaborations. Reach me at: violin.monica@ui.ac.id or violin.monica@ristek.cs.ui.ac.id or violinmonica190207@gmail.com</p>
+
+                    <!-- <dl> (description list) dipakai karena datanya sepasang label-isi (key-value) -->
                     <dl class="meta-list">
                         <div class="meta-row">
                             <dt>NPM</dt>
@@ -46,21 +66,34 @@
                             <dd>S1 Ilmu Komputer</dd>
                         </div>
                     </dl>
+
+                    <!-- Link sosial. Icon devicon SENGAJA tanpa class "colored",
+                         biar warnanya ngikut warna teks (putih) alih-alih warna resmi brand -->
                     <div class="social-links">
                         <a href="https://github.com/ViolinMonica" class="social-link"><i class="devicon-github-plain"></i>GitHub</a>
                         <a href="https://linkedin.com/in/violin-monica" class="social-link"><i class="devicon-linkedin-plain"></i>LinkedIn</a>
+                        <!-- Icon Gmail pakai <img> (bukan font icon), warnanya diatur lewat
+                             parameter di URL simpleicons.org (/faf6ee = warna --paper) -->
                         <a href="mailto:violin.monica@ui.ac.id" class="social-link"><img src="https://cdn.simpleicons.org/gmail/faf6ee" alt="logo gmail">Email</a>
                     </div>
                 </div>
+
             </div>
         </section>
+
+        <!-- ============================================
+             SKILLS SECTION — daftar kemampuan per kategori
+             ============================================ -->
         <section class="skills" id="skills">
             <div class="container">
+
                 <div class="section-header">
                     <p class="hero-kicker">What I am Capable Of</p>
                     <h2>Skills</h2>
-                    
-                    <!-- Skill Filter -->
+
+                    <!-- Dropdown filter kategori skill.
+                         value tiap <option> HARUS sama persis dengan data-category
+                         di elemen .skill-category di bawah, karena dicocokkan oleh script.js -->
                     <select id="skill-filter">
                         <option value="all">All</option>
                         <option value="languages">Languages</option>
@@ -73,7 +106,10 @@
                         <option value="design">Beside the Keyboard</option>
                     </select>
                 </div>
-                
+
+                <!-- Tiap .skill-category punya atribut data-category sebagai "penanda"
+                     yang dibaca script.js buat nentuin card mana yang ditampilkan/disembunyikan -->
+
                 <div class="skill-category" data-category="languages">
                     <h3 class="skill-category-title">Languages</h3>
                     <div class="skill-list">
@@ -91,7 +127,7 @@
                         </span>
                     </div>
                 </div>
-                
+
                 <div class="skill-category" data-category="programming">
                     <h3 class="skill-category-title">Programming languages</h3>
                     <div class="skill-list">
@@ -109,7 +145,7 @@
                         </span>
                     </div>
                 </div>
-                
+
                 <div class="skill-category" data-category="fullstack">
                     <h3 class="skill-category-title">Fullstack</h3>
                     <div class="skill-list">
@@ -134,7 +170,7 @@
                         </span>
                     </div>
                 </div>
-                
+
                 <div class="skill-category" data-category="database">
                     <h3 class="skill-category-title">Database</h3>
                     <div class="skill-list">
@@ -146,7 +182,9 @@
                         </span>
                     </div>
                 </div>
-                
+
+                <!-- Icon di kategori ini pakai <img> dari CDN eksternal (bukan devicon),
+                     karena Burp Suite/Wireshark/Nmap/Ghidra nggak tersedia di devicon -->
                 <div class="skill-category" data-category="cybersecurity">
                     <h3 class="skill-category-title">Cybersecurity</h3>
                     <div class="skill-list">
@@ -168,7 +206,7 @@
                         </span>
                     </div>
                 </div>
-                
+
                 <div class="skill-category" data-category="tools">
                     <h3 class="skill-category-title">Tools</h3>
                     <div class="skill-list">
@@ -189,7 +227,9 @@
                         </span>
                     </div>
                 </div>
-                
+
+                <!-- ROS pakai varian "-original" (bukan "-plain") karena devicon
+                     cuma nyediain versi itu buat ROS -->
                 <div class="skill-category" data-category="robotic">
                     <h3 class="skill-category-title">Robotic</h3>
                     <div class="skill-list">
@@ -203,7 +243,7 @@
                         </span>
                     </div>
                 </div>
-                
+
                 <div class="skill-category" data-category="design">
                     <h3 class="skill-category-title">Beside the Keyboard</h3>
                     <div class="skill-list">
@@ -215,18 +255,28 @@
                         <span class="skill-pill">Painting</span>
                     </div>
                 </div>
+
             </div>
         </section>
+
+        <!-- ============================================
+             PROJECTS SECTION — daftar proyek yang pernah dibuat
+             ============================================ -->
         <section class="projects" id="projects">
             <div class="container">
+
                 <div class="section-header">
                     <p class="hero-kicker">Stuff I Built</p>
                     <h2>Projects</h2>
                 </div>
+
+                <!-- .project-grid otomatis nyusun card jadi beberapa kolom
+                     responsive, lihat grid-template-columns di CSS -->
                 <div class="project-grid">
+
                     <div class="project-card">
                         <div class="card-image-wrap">
-                            <img src="static/img/Mockup.png" alt="Mockup NUSA-CROP">
+                            <img src="/static/img/nusa-crop.png" alt="Mockup NUSA-CROP">
                         </div>
                         <div class="card-body">
                             <p class="card-title">NUSA-CROP</p>
@@ -238,15 +288,17 @@
                                 Role: AI Engineer<br>designed and built the machine learning model behind
                                 the crop recommendations.
                             </p>
+                            <!-- target="_blank" biar link kebuka di tab baru, nggak ninggalin portofolio -->
                             <div class="card-link">
                                 <a href="https://nusa-crop-gemastik.vercel.app/" class="project-link" target="_blank">View Project</a>
                                 <a href="https://github.com/ViolinMonica/AI-ML-NUSA-CROP-GEMASTIK-XIX" title="Github" class="github-link" target="_blank"><i class="devicon-github-plain colored"></i></a>
                             </div>
                         </div>
                     </div>
+
                     <div class="project-card">
                         <div class="card-image-wrap">
-                            <img src="static/img/Artboard.png" alt="Mockup portfolio">
+                            <img src="/static/img/portofolio.png" alt="Mockup portfolio">
                         </div>
                         <div class="card-body">
                             <p class="card-title">Portofolio</p>
@@ -261,9 +313,10 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="project-card">
                         <div class="card-image-wrap">
-                            <img src="static/img/bobol.png" alt="Mockup bobol">
+                            <img src="/static/img/bobol.png" alt="Mockup bobol">
                         </div>
                         <div class="card-body">
                             <p class="card-title">CTF Challenge Author</p>
@@ -277,29 +330,24 @@
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </section>
+
     </main>
-    
+
+    <!-- ============================================
+         FOOTER
+         ============================================ -->
     <footer class="site-footer">
         <div class="container">
             <p>&copy; 2026 Violin Monica. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
         </div>
     </footer>
-    <script>
-        const skillFilter = document.querySelector("#skill-filter");
-        const skillCategories = document.querySelectorAll(".skill-category");
-        skillFilter.addEventListener("change", function () {
-            const selectedValue = skillFilter.value;
-            skillCategories.forEach(function (category) {
-                if (selectedValue === "all" ||category.dataset.category === selectedValue) {
-                    category.style.display = "";
-                } else {
-                    category.style.display = "none";
-                }
-            });
-        });
-    </script>
+
+    <!-- Ditaruh di bawah sebelum </body> biar HTML di atasnya udah kebentuk
+         duluan sebelum script.js dieksekusi -->
+    <script src="/static/js/script.js"></script>
 </body>
 </html>
