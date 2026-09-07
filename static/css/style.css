@@ -343,6 +343,8 @@ h1, .brand {
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .project-grid {
@@ -366,6 +368,9 @@ h1, .brand {
 
 .card-body {
     padding: 1rem 1.1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
 .card-title {
@@ -386,6 +391,7 @@ h1, .brand {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    margin-top: auto;
 }
 
 .project-link {
@@ -416,6 +422,7 @@ h1, .brand {
     align-items: center;
     justify-content: center;
     transition: background-color 0.2s ease;
+    margin-top: auto;
 }
 
 .github-link:hover {
