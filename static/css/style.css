@@ -162,10 +162,6 @@ h1, .brand {
     height: 16px;
 }
 
-.social-link .devicon-github-plain {
-    filter: invert(1) brightness(2);
-}
-
 .social-link:hover {
     background-color: var(--accent);
 }
