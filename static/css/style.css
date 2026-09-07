@@ -296,98 +296,62 @@ h1, .brand {
     }
 }
 
-.projects {
-    padding: 4.5rem 0;
-    border-top: 1px solid var(--line);
-}
-
-.section-title {
-    font-size: 1.6rem;
-    margin-bottom: 2rem;
-}
-
-.project-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 2rem;
-}
-
-.project-card {
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
+.project.card {
+    width: 260px;
+    background-color: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     overflow: hidden;
-    transition: border-color 0.2s ease;
 }
 
-.project-card:hover {
-    border-color: var(--accent);
+.card.image.wrap {
+    position: relative;
+    height: 160px;
 }
 
-.project-thumb {
-    width: 100%;
-    aspect-ratio: 16 / 10;
-    overflow: hidden;
-    background-color: var(--line);
-}
-
-.project-thumb img {
+.card.image.wrap img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
 }
 
-.project-body {
-    padding: 1.25rem 1.5rem 1.5rem;
+.card-body {
+    padding: 1rem 1.1rem 1.2rem;
 }
 
-.project-title {
+.card-title {
     font-size: 1.15rem;
-    margin-bottom: 0.5rem;
+    font-weight: 700;
+    color: #1c1c1c;
+    margin-bottom: 0.15rem;
 }
 
-.project-desc {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    margin-bottom: 1rem;
+.card-subtitle {
+    font-size: 0.8rem;
+    color: #8a8a8a;
+    margin-bottom: 0.9rem;
 }
 
-.project-tags {
+.card-link {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1.25rem;
+    align-items: center;
+    gap: 0.6rem;
 }
 
-.project-links {
-    display: flex;
-    gap: 0.75rem;
-}
-
-.project-link {
-    font-size: 0.85rem;
-    font-weight: 600;
+.card-link .project-link {
+    flex: 1;
+    background-color: #111111;
+    color: #ffffff;
     text-decoration: none;
-    padding: 0.55rem 1.1rem;
-    border-radius: var(--radius);
-    border: 1px solid var(--ink);
-    color: var(--ink);
-    transition: background-color 0.2s ease, color 0.2s ease;
+    text-align: center;
+    border-radius: 999px;
+    padding: 0.75rem 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
 }
 
-.project-link-primary {
-    background-color: var(--ink);
-    color: var(--paper);
-}
-
-.project-link:hover {
-    background-color: var(--accent);
-    border-color: var(--accent);
-    color: var(--paper);
-}
-
-@media (max-width: 600px) {
-    .projects {
-        padding: 3rem 0;
-    }
+.card-link .project-link:hover {
+    background-color: #333333;
 }
