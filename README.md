@@ -37,6 +37,7 @@ python manage.py runserver
 Buka `http://127.0.0.1:8000` di browser.
 
 ## Struktur Folder (ringkas) 
+```text
 portfolio/
 ├── manage.py
 ├── requirements.txt
@@ -64,6 +65,7 @@ portfolio/
         ├── nusa-crop.png
         ├── portofolio.png
         └── bobol.png
+```
 
 ## Deployment
 Live di: https://violin-monica-portofolio.pws.cs.ui.ac.id
@@ -133,4 +135,4 @@ Bagian yang dibantu AI:
 
 Keterbatasan AI: AI tidak tahu bagian mana dari kode saya yang asli buatan sendiri vs hasil contoh tutorial kecuali saya beri tahu, jadi saya perlu mengoreksi draf refleksi secara manual agar jujur mencerminkan proses belajar saya.
 
-Log chat AI: lihat `docs/ai-chat-log.pdf` di repo ini.
+Log chat AI: https://claude.ai/share/705f637e-bd3a-49ee-9412-0a979b428e72
