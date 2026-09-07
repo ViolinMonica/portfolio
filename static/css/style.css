@@ -202,12 +202,17 @@ h1, .brand {
     border-top: 1px solid var(--line);
 }
 
-.skill-category {
-    margin-bottom: 2rem;
+/* kategori jadi card, disusun grid biar bisa berjejer */
+.skills .container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
 }
 
-.skill-category:last-child {
-    margin-bottom: 0;
+.skill-category {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.5rem;
 }
 
 .skill-category-title {
@@ -226,7 +231,9 @@ h1, .brand {
 }
 
 .skill-pill {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--ink);
@@ -234,7 +241,9 @@ h1, .brand {
     border: 1px solid var(--line);
     border-radius: var(--radius);
     padding: 0.4rem 0.9rem;
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    transition: background-color 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                color 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                border-color 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .skill-pill:hover {
@@ -243,8 +252,26 @@ h1, .brand {
     color: var(--paper);
 }
 
+.skill-pill i {
+    font-size: 1rem;
+}
+
+.skill-pill .flag {
+    font-size: 1rem;
+}
+
+.skill-pill .tool-icon {
+    width: 1rem;
+    height: 1rem;
+    vertical-align: -2px;
+}
+
 @media (max-width: 600px) {
     .skills {
         padding: 3rem 0;
+    }
+
+    .skills .container {
+        grid-template-columns: 1fr;
     }
 }
