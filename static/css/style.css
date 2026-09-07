@@ -251,19 +251,10 @@ h1, .brand {
     border: 1px solid var(--line);
     border-radius: var(--radius);
     padding: 0.4rem 0.9rem;
-    .skill-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--ink);
-        background-color: transparent;
-        border: 1px solid var(--line);
-        border-radius: var(--radius);
-        padding: 0.4rem 0.9rem;
-        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-    }
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
 }
 
 .skill-pill:hover {
@@ -296,45 +287,14 @@ h1, .brand {
     }
 }
 
-.skill-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--ink);
-    background-color: transparent;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 0.4rem 0.9rem;
-    transition:
-        background-color 0.2s ease,
-        color 0.2s ease,
-        border-color 0.2s ease;
-}
-
-.skill-pill:hover {
-    background-color: var(--accent);
-    border-color: var(--accent);
-    color: var(--paper);
-}
-
-.skill-pill i {
-    font-size: 1rem;
-}
-
-.skill-pill .flag {
-    font-size: 1rem;
-}
-
-.skill-pill .tool-icon {
-    width: 1rem;
-    height: 1rem;
-    vertical-align: -2px;
-}
-
 .projects {
     padding-bottom: 4rem;
+}
+
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 2rem;
 }
 
 .project-card {
@@ -345,12 +305,6 @@ h1, .brand {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-}
-
-.project-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 2rem;
 }
 
 .card-image-wrap {
@@ -385,6 +339,13 @@ h1, .brand {
     color: #8a8a8a;
     margin-bottom: 0.9rem;
     text-align: justify;
+}
+
+.card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
 }
 
 .card-link {
@@ -422,7 +383,6 @@ h1, .brand {
     align-items: center;
     justify-content: center;
     transition: background-color 0.2s ease;
-    margin-top: auto;
 }
 
 .github-link:hover {
