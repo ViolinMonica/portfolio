@@ -337,12 +337,18 @@ h1, .brand {
     padding-bottom: 4rem;
 }
 
-.project.card {
-    width: 260px;
+.project-card {
+    width: 100%;
     background-color: #ffffff;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
     overflow: hidden;
+}
+
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 2rem;
 }
 
 .card-image-wrap {
