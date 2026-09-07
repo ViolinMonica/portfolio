@@ -12,20 +12,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon/devicon.min.css">
 </head>
 <body>
-    <script>
-        const skillFilter = document.querySelector("#skill-filter");
-        const skillCategories = document.querySelectorAll(".skill-category");
-        skillFilter.addEventListener("change", function () {
-            const selectedValue = skillFilter.value;
-            skillCategories.forEach(function (category) {
-                if (selectedValue === "all" ||category.dataset.category === selectedValue) {
-                    category.style.display = "";
-                } else {
-                    category.style.display = "none";
-                }
-            });
-        });
-    </script>
     <header class="site-header">
         <div class="container">
             <a href="#profile" class="brand">Violin Monica.</a>
@@ -309,5 +295,19 @@
             <p>&copy; 2026 Violin Monica. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
         </div>
     </footer>
+    <script>
+        const skillFilter = document.querySelector("#skill-filter");
+        const skillCategories = document.querySelectorAll(".skill-category");
+        skillFilter.addEventListener("change", function () {
+            const selectedValue = skillFilter.value;
+            skillCategories.forEach(function (category) {
+                if (selectedValue === "all" ||category.dataset.category === selectedValue) {
+                    category.style.display = "";
+                } else {
+                    category.style.display = "none";
+                }
+            });
+        });
+    </script>
 </body>
 </html>
