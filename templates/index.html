@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Violin Monica - Portfolio</title>
+    <title>{{ name }} - Portofolio</title>
     
     <!-- Font "Space Grotesk" dari Google Fonts, dipakai buat nama & judul section -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,9 +22,10 @@
     ============================================ -->
     <header class="site-header">
         <div class="container">
-            <a href="#profile" class="brand">Violin Monica.</a>
+            <a href="{% url 'main:show_main' %}" class="brand">{{ name }}</a>
             <nav>
-                <a href="#profile">Profile</a>
+                <a href="{% url 'main:show_main' %}">Profile</a>
+                <a href="{% url 'main:show_experience' %}">Experience</a>
                 <a href="#skills">Skills</a>
                 <a href="#projects">Projects</a>
             </nav>
@@ -32,7 +33,6 @@
     </header>
     
     <main>
-        
         <!-- ============================================
         HERO SECTION — identitas & profil singkat
         ============================================ -->
@@ -42,28 +42,27 @@
                 <!-- Kolom kiri-atas: label kecil + nama -->
                 <div class="hero-identity">
                     <p class="hero-kicker">Computer Science &middot; Universitas Indonesia</p>
-                    <h1>Violin Monica</h1>
+                    <h1>{{ name }}</h1>
                 </div>
                 
                 <!-- Kolom kanan: foto dengan efek kartu bertumpuk (lihat .photo-block di CSS) -->
                 <div class="hero-photo">
                     <div class="photo-block"></div>
-                    <img class="avatar" src="/static/img/profile.jpg" alt="Photo of Violin">
+                    <img class="avatar" src="/static/img/profile.jpg" alt="Photo of {{ name }}">
                 </div>
                 
                 <!-- Kolom kiri-bawah: bio, data diri (NPM/Program), dan link sosial -->
                 <div class="hero-details">
-                    <p class="bio">Computer Science student at Universitas Indonesia with a growing expertise in Cybersecurity and Data Science. I thrive at the intersection of rigorous logic and creative problem-solving. I am passionate about uncovering vulnerabilities and leveraging data to build secure, impactful solutions. Always open to discussing tech trends, security research, or potential collaborations. Reach me at: violin.monica@ui.ac.id or violin.monica@ristek.cs.ui.ac.id or violinmonica190207@gmail.com</p>
-                    
+                    <p class="bio">{{ bio }}</p>
                     <!-- <dl> (description list) dipakai karena datanya sepasang label-isi (key-value) -->
                         <dl class="meta-list">
                             <div class="meta-row">
                                 <dt>NPM</dt>
-                                <dd>2506551794</dd>
+                                <dd>{{ npm }}</dd>
                             </div>
                             <div class="meta-row">
                                 <dt>Program</dt>
-                                <dd>S1 Ilmu Komputer</dd>
+                                <dd>{{ study_program }}</dd>
                             </div>
                         </dl>
                         
@@ -78,280 +77,280 @@
                         </div>
                     </div>
                     
-                </div>
-            </section>
-            
-            <!-- ============================================
-            SKILLS SECTION — daftar kemampuan per kategori
-            ============================================ -->
-            <section class="skills" id="skills">
-                <div class="container">
-                    
-                    <div class="section-header">
-                        <p class="hero-kicker">What I am Capable Of</p>
-                        <h2>Skills</h2>
-                        
-                        <!-- Dropdown filter kategori skill.
-                        value tiap <option> HARUS sama persis dengan data-category
-                            di elemen .skill-category di bawah, karena dicocokkan oleh script.js -->
-                            <select id="skill-filter">
-                                <option value="all">All</option>
-                                <option value="languages">Languages</option>
-                                <option value="programming">Programming Languages</option>
-                                <option value="fullstack">Fullstack</option>
-                                <option value="database">Database</option>
-                                <option value="cybersecurity">Cybersecurity</option>
-                                <option value="tools">Tools</option>
-                                <option value="robotic">Robotic</option>
-                                <option value="design">Beside the Keyboard</option>
-                            </select>
-                        </div>
-                        
-                        <!-- Tiap .skill-category punya atribut data-category sebagai "penanda"
-                        yang dibaca script.js buat nentuin card mana yang ditampilkan/disembunyikan -->
-                        
-                        <div class="skill-category" data-category="languages">
-                            <h3 class="skill-category-title">Languages</h3>
-                            <div class="skill-list">
-                                <span class="skill-pill">
-                                    <span class="flag">🇮🇩</span>
-                                    Bahasa Indonesia (Native proficiency)
-                                </span>
-                                <span class="skill-pill">
-                                    <span class="flag">🇬🇧</span>
-                                    English (Professional proficiency)
-                                </span>
-                                <span class="skill-pill">
-                                    <span class="flag">🇨🇳</span>
-                                    Mandarin (Basic proficiency)
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="skill-category" data-category="programming">
-                            <h3 class="skill-category-title">Programming languages</h3>
-                            <div class="skill-list">
-                                <span class="skill-pill">
-                                    <i class="devicon-python-plain colored"></i> Python
-                                </span>
-                                <span class="skill-pill">
-                                    <i class="devicon-java-plain colored"></i> Java
-                                </span>
-                                <span class="skill-pill">
-                                    <i class="devicon-cplusplus-plain colored"></i> C++
-                                </span>
-                                <span class="skill-pill">
-                                    <i class="devicon-azuresqldatabase-plain colored"></i> SQL
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="skill-category" data-category="fullstack">
-                            <h3 class="skill-category-title">Fullstack</h3>
-                            <div class="skill-list">
-                                <span class="skill-pill">
-                                    <i class="devicon-django-plain colored"></i>Django
-                                </span>
-                                <span class="skill-pill">
-                                    <i class="devicon-nextjs-plain colored"></i>Next.js
-                                </span>
-                                <span class="skill-pill">REST API</span>
-                                <span class="skill-pill">
-                                    <i class="devicon-html5-plain colored"></i>HTML
-                                </span>
-                                <span class="skill-pill">
-                                    <i class="devicon-css3-plain colored"></i>CSS
-                                </span>
-                                <span class="skill-pill">
-                                    <i class="devicon-postman-plain colored"></i>Postman
-                                </span>
-                                <span class="skill-pill">
-                                    <i class="devicon-react-plain colored"></i>React
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="skill-category" data-category="database">
-                            <h3 class="skill-category-title">Database</h3>
-                            <div class="skill-list">
-                                <span class="skill-pill">
-                                    <i class="devicon-postgresql-plain colored"></i>PostgreSQL
-                                </span>
-                                <span class="skill-pill">
-                                    <i class="devicon-sqlite-plain colored"></i>SQLite
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <!-- Icon di kategori ini pakai <img> dari CDN eksternal (bukan devicon),
-                        karena Burp Suite/Wireshark/Nmap/Ghidra nggak tersedia di devicon -->
-                        <div class="skill-category" data-category="cybersecurity">
-                            <h3 class="skill-category-title">Cybersecurity</h3>
-                            <div class="skill-list">
-                                <span class="skill-pill">
-                                    <img class="tool-icon" src="https://cdn.simpleicons.org/burpsuite" alt="logo burp suite">
-                                    Burp Suite
-                                </span>
-                                <span class="skill-pill">
-                                    <img class="tool-icon" src="https://cdn.simpleicons.org/wireshark" alt="logo wireshark">
-                                    Wireshark
-                                </span>
-                                <span class="skill-pill">
-                                    <img class="tool-icon" src="https://nmap.org/images/sitelogo-2x.png" alt="logo nmap">
-                                    Nmap
-                                </span>
-                                <span class="skill-pill">
-                                    <img class="tool-icon" src="https://media.defense.gov/2023/Mar/06/2003173005/-1/-1/0/230306-D-IM742-4444.PNG" alt="logo ghidra">
-                                    Ghidra
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="skill-category" data-category="tools">
-                            <h3 class="skill-category-title">Tools</h3>
-                            <div class="skill-list">
-                                <span class="skill-pill">
-                                    <i class="devicon-git-plain colored"></i>Git
-                                </span>
-                                <span class="skill-pill">
-                                    <i class="devicon-github-plain colored"></i>Github
-                                </span>
-                                <span class="skill-pill">
-                                    <i class="devicon-linux-plain colored"></i>Linux
-                                </span>
-                                <span class="skill-pill">
-                                    <i class="devicon-docker-plain colored"></i>Docker
-                                </span>
-                                <span class="skill-pill">
-                                    <i class="devicon-vscode-plain colored"></i>Visual Studio Code
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <!-- ROS pakai varian "-original" (bukan "-plain") karena devicon
-                        cuma nyediain versi itu buat ROS -->
-                        <div class="skill-category" data-category="robotic">
-                            <h3 class="skill-category-title">Robotic</h3>
-                            <div class="skill-list">
-                                <span class="skill-pill">
-                                    <i class="devicon-ros-original colored"></i>
-                                    Robot Operating System (ROS)
-                                </span>
-                                <span class="skill-pill">
-                                    <i class="devicon-arduino-plain colored"></i>
-                                    Arduino
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="skill-category" data-category="design">
-                            <h3 class="skill-category-title">Beside the Keyboard</h3>
-                            <div class="skill-list">
-                                <span class="skill-pill">UI/UX</span>
-                                <span class="skill-pill">
-                                    <i class="devicon-figma-plain colored"></i>Figma
-                                </span>
-                                <span class="skill-pill">Graphic Design</span>
-                                <span class="skill-pill">Painting</span>
-                            </div>
-                        </div>
-                        
-                    </div>
-                </section>
+            </div>
+        </section>
+        
+        <!-- ============================================
+        SKILLS SECTION — daftar kemampuan per kategori
+        ============================================ -->
+        <section class="skills" id="skills">
+            <div class="container">
                 
-                <!-- ============================================
-                PROJECTS SECTION — daftar proyek yang pernah dibuat
-                ============================================ -->
-                <section class="projects" id="projects">
-                    <div class="container">
-                        
-                        <div class="section-header">
-                            <p class="hero-kicker">Stuff I Built</p>
-                            <h2>Projects</h2>
+                <div class="section-header">
+                    <p class="hero-kicker">What I am Capable Of</p>
+                    <h2>Skills</h2>
+                    
+                    <!-- Dropdown filter kategori skill.
+                    value tiap <option> HARUS sama persis dengan data-category
+                        di elemen .skill-category di bawah, karena dicocokkan oleh script.js -->
+                        <select id="skill-filter">
+                            <option value="all">All</option>
+                            <option value="languages">Languages</option>
+                            <option value="programming">Programming Languages</option>
+                            <option value="fullstack">Fullstack</option>
+                            <option value="database">Database</option>
+                            <option value="cybersecurity">Cybersecurity</option>
+                            <option value="tools">Tools</option>
+                            <option value="robotic">Robotic</option>
+                            <option value="design">Beside the Keyboard</option>
+                        </select>
+                </div>
+                
+                <!-- Tiap .skill-category punya atribut data-category sebagai "penanda"
+                yang dibaca script.js buat nentuin card mana yang ditampilkan/disembunyikan -->
+                
+                <div class="skill-category" data-category="languages">
+                    <h3 class="skill-category-title">Languages</h3>
+                    <div class="skill-list">
+                        <span class="skill-pill">
+                            <span class="flag">🇮🇩</span>
+                            Bahasa Indonesia (Native proficiency)
+                        </span>
+                        <span class="skill-pill">
+                            <span class="flag">🇬🇧</span>
+                            English (Professional proficiency)
+                        </span>
+                        <span class="skill-pill">
+                            <span class="flag">🇨🇳</span>
+                            Mandarin (Basic proficiency)
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="skill-category" data-category="programming">
+                    <h3 class="skill-category-title">Programming languages</h3>
+                    <div class="skill-list">
+                        <span class="skill-pill">
+                            <i class="devicon-python-plain colored"></i> Python
+                        </span>
+                        <span class="skill-pill">
+                            <i class="devicon-java-plain colored"></i> Java
+                        </span>
+                        <span class="skill-pill">
+                            <i class="devicon-cplusplus-plain colored"></i> C++
+                        </span>
+                        <span class="skill-pill">
+                            <i class="devicon-azuresqldatabase-plain colored"></i> SQL
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="skill-category" data-category="fullstack">
+                    <h3 class="skill-category-title">Fullstack</h3>
+                    <div class="skill-list">
+                        <span class="skill-pill">
+                            <i class="devicon-django-plain colored"></i>Django
+                        </span>
+                        <span class="skill-pill">
+                            <i class="devicon-nextjs-plain colored"></i>Next.js
+                        </span>
+                        <span class="skill-pill">REST API</span>
+                        <span class="skill-pill">
+                            <i class="devicon-html5-plain colored"></i>HTML
+                        </span>
+                        <span class="skill-pill">
+                            <i class="devicon-css3-plain colored"></i>CSS
+                        </span>
+                        <span class="skill-pill">
+                            <i class="devicon-postman-plain colored"></i>Postman
+                        </span>
+                        <span class="skill-pill">
+                            <i class="devicon-react-plain colored"></i>React
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="skill-category" data-category="database">
+                    <h3 class="skill-category-title">Database</h3>
+                    <div class="skill-list">
+                        <span class="skill-pill">
+                            <i class="devicon-postgresql-plain colored"></i>PostgreSQL
+                        </span>
+                        <span class="skill-pill">
+                            <i class="devicon-sqlite-plain colored"></i>SQLite
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Icon di kategori ini pakai <img> dari CDN eksternal (bukan devicon),
+                karena Burp Suite/Wireshark/Nmap/Ghidra nggak tersedia di devicon -->
+                <div class="skill-category" data-category="cybersecurity">
+                    <h3 class="skill-category-title">Cybersecurity</h3>
+                    <div class="skill-list">
+                        <span class="skill-pill">
+                            <img class="tool-icon" src="https://cdn.simpleicons.org/burpsuite" alt="logo burp suite">
+                            Burp Suite
+                        </span>
+                        <span class="skill-pill">
+                            <img class="tool-icon" src="https://cdn.simpleicons.org/wireshark" alt="logo wireshark">
+                            Wireshark
+                        </span>
+                        <span class="skill-pill">
+                            <img class="tool-icon" src="https://nmap.org/images/sitelogo-2x.png" alt="logo nmap">
+                            Nmap
+                        </span>
+                        <span class="skill-pill">
+                            <img class="tool-icon" src="https://media.defense.gov/2023/Mar/06/2003173005/-1/-1/0/230306-D-IM742-4444.PNG" alt="logo ghidra">
+                            Ghidra
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="skill-category" data-category="tools">
+                    <h3 class="skill-category-title">Tools</h3>
+                    <div class="skill-list">
+                        <span class="skill-pill">
+                            <i class="devicon-git-plain colored"></i>Git
+                        </span>
+                        <span class="skill-pill">
+                            <i class="devicon-github-plain colored"></i>Github
+                        </span>
+                        <span class="skill-pill">
+                            <i class="devicon-linux-plain colored"></i>Linux
+                        </span>
+                        <span class="skill-pill">
+                            <i class="devicon-docker-plain colored"></i>Docker
+                        </span>
+                        <span class="skill-pill">
+                            <i class="devicon-vscode-plain colored"></i>Visual Studio Code
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- ROS pakai varian "-original" (bukan "-plain") karena devicon
+                cuma nyediain versi itu buat ROS -->
+                <div class="skill-category" data-category="robotic">
+                    <h3 class="skill-category-title">Robotic</h3>
+                    <div class="skill-list">
+                        <span class="skill-pill">
+                            <i class="devicon-ros-original colored"></i>
+                            Robot Operating System (ROS)
+                        </span>
+                        <span class="skill-pill">
+                            <i class="devicon-arduino-plain colored"></i>
+                            Arduino
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="skill-category" data-category="design">
+                    <h3 class="skill-category-title">Beside the Keyboard</h3>
+                    <div class="skill-list">
+                        <span class="skill-pill">UI/UX</span>
+                        <span class="skill-pill">
+                            <i class="devicon-figma-plain colored"></i>Figma
+                        </span>
+                        <span class="skill-pill">Graphic Design</span>
+                        <span class="skill-pill">Painting</span>
+                    </div>
+                </div>
+                
+            </div>
+        </section>
+        
+        <!-- ============================================
+        PROJECTS SECTION — daftar proyek yang pernah dibuat
+        ============================================ -->
+        <section class="projects" id="projects">
+            <div class="container">
+                
+                <div class="section-header">
+                    <p class="hero-kicker">Stuff I Built</p>
+                    <h2>Projects</h2>
+                </div>
+                
+                <!-- .project-grid otomatis nyusun card jadi beberapa kolom
+                responsive, lihat grid-template-columns di CSS -->
+                <div class="project-grid">
+                    
+                    <div class="project-card">
+                        <div class="card-image-wrap">
+                            <img src="/static/img/nusa-crop.png" alt="Mockup NUSA-CROP">
                         </div>
-                        
-                        <!-- .project-grid otomatis nyusun card jadi beberapa kolom
-                        responsive, lihat grid-template-columns di CSS -->
-                        <div class="project-grid">
-                            
-                            <div class="project-card">
-                                <div class="card-image-wrap">
-                                    <img src="/static/img/nusa-crop.png" alt="Mockup NUSA-CROP">
-                                </div>
-                                <div class="card-body">
-                                    <p class="card-title">NUSA-CROP</p>
-                                    <p class="card-subtitle">NUSA-CROP is a crop recommendation system that helps identify the best
-                                        local crops for marginal farmland using satellite imagery and
-                                        environmental data. It's built for farmers working marginal land and the
-                                        field officers who support them, turning local conditions into practical
-                                        planting decisions.<br><br>
-                                        Role: AI Engineer<br>designed and built the machine learning model behind
-                                        the crop recommendations.
-                                    </p>
-                                    <!-- target="_blank" biar link kebuka di tab baru, nggak ninggalin portofolio -->
-                                    <div class="card-link">
-                                        <a href="https://nusa-crop-gemastik.vercel.app/" class="project-link" target="_blank">View Project</a>
-                                        <a href="https://github.com/ViolinMonica/AI-ML-NUSA-CROP-GEMASTIK-XIX" title="Github" class="github-link" target="_blank"><i class="devicon-github-plain colored"></i></a>
-                                    </div>
-                                </div>
+                        <div class="card-body">
+                            <p class="card-title">NUSA-CROP</p>
+                            <p class="card-subtitle">NUSA-CROP is a crop recommendation system that helps identify the best
+                                local crops for marginal farmland using satellite imagery and
+                                environmental data. It's built for farmers working marginal land and the
+                                field officers who support them, turning local conditions into practical
+                                planting decisions.<br><br>
+                                Role: AI Engineer<br>designed and built the machine learning model behind
+                                the crop recommendations.
+                            </p>
+                            <!-- target="_blank" biar link kebuka di tab baru, nggak ninggalin portofolio -->
+                            <div class="card-link">
+                                <a href="https://nusa-crop-gemastik.vercel.app/" class="project-link" target="_blank">View Project</a>
+                                <a href="https://github.com/ViolinMonica/AI-ML-NUSA-CROP-GEMASTIK-XIX" title="Github" class="github-link" target="_blank"><i class="devicon-github-plain colored"></i></a>
                             </div>
-                            
-                            <div class="project-card">
-                                <div class="card-image-wrap">
-                                    <img src="/static/img/portofolio.png" alt="Mockup portfolio">
-                                </div>
-                                <div class="card-body">
-                                    <p class="card-title">Portofolio</p>
-                                    <p class="card-subtitle">You are currently seeing this project :) a self-built responsive portfolio site built from
-                                        scratch with HTML, CSS, Django, and JavaScript to showcase my projects, skills,
-                                        and background. Designed with a clean, straightforward layout so
-                                        people can quickly get a sense of what I can do.
-                                    </p>
-                                    <div class="card-link">
-                                        <a href="https://violin-monica-portofolio.pws.cs.ui.ac.id" class="project-link" target="_blank">View Project</a>
-                                        <a href="https://github.com/ViolinMonica/portfolio" title="Github" class="github-link" target="_blank"><i class="devicon-github-plain colored"></i></a>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="project-card">
-                                <div class="card-image-wrap">
-                                    <img src="/static/img/bobol.png" alt="Mockup bobol">
-                                </div>
-                                <div class="card-body">
-                                    <p class="card-title">CTF Challenge Author</p>
-                                    <p class="card-subtitle">Designed and built security challenges that teach players reverse
-                                        engineering and sandbox-escape skills, from beginner puzzles to a
-                                        deployable network-based challenge.
-                                    </p>
-                                    <div class="card-link">
-                                        <a href="https://bobol.netsos.id" class="project-link" target="_blank">View Project</a>
-                                        <a href="https://github.com/ViolinMonica/soal-bobol" title="Github" class="github-link" target="_blank"><i class="devicon-github-plain colored"></i></a>
-                                    </div>
-                                </div>
-                            </div>
-                            
                         </div>
                     </div>
-                </section>
-            </main>
-            <ul>
-                {% for mhs in mahasiswa_list %}
-                <li>{{ mhs.nama }} - {{ mhs.npm }}</li>
-                {% endfor %}
-            </ul>
-            
-            <!-- ============================================
-            FOOTER
-            ============================================ -->
-            <footer class="site-footer">
-                <div class="container">
-                    <p>&copy; 2026 Violin Monica. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+                    
+                    <div class="project-card">
+                        <div class="card-image-wrap">
+                            <img src="/static/img/portofolio.png" alt="Mockup portfolio">
+                        </div>
+                        <div class="card-body">
+                            <p class="card-title">Portofolio</p>
+                            <p class="card-subtitle">You are currently seeing this project :) a self-built responsive portfolio site built from
+                                scratch with HTML, CSS, Django, and JavaScript to showcase my projects, skills,
+                                and background. Designed with a clean, straightforward layout so
+                                people can quickly get a sense of what I can do.
+                            </p>
+                            <div class="card-link">
+                                <a href="https://violin-monica-portofolio.pws.cs.ui.ac.id" class="project-link" target="_blank">View Project</a>
+                                <a href="https://github.com/ViolinMonica/portfolio" title="Github" class="github-link" target="_blank"><i class="devicon-github-plain colored"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="project-card">
+                        <div class="card-image-wrap">
+                            <img src="/static/img/bobol.png" alt="Mockup bobol">
+                        </div>
+                        <div class="card-body">
+                            <p class="card-title">CTF Challenge Author</p>
+                            <p class="card-subtitle">Designed and built security challenges that teach players reverse
+                                engineering and sandbox-escape skills, from beginner puzzles to a
+                                deployable network-based challenge.
+                            </p>
+                            <div class="card-link">
+                                <a href="https://bobol.netsos.id" class="project-link" target="_blank">View Project</a>
+                                <a href="https://github.com/ViolinMonica/soal-bobol" title="Github" class="github-link" target="_blank"><i class="devicon-github-plain colored"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    
                 </div>
-            </footer>
-            
-            <!-- Ditaruh di bawah sebelum </body> biar HTML di atasnya udah kebentuk
-            duluan sebelum script.js dieksekusi -->
-            <script src="/static/js/script.js"></script>
-        </body>
-        </html>
+            </div>
+        </section>
+    </main>
+    <ul>
+        {% for mhs in mahasiswa_list %}
+        <li>{{ mhs.nama }} - {{ mhs.npm }}</li>
+        {% endfor %}
+    </ul>
+    
+    <!-- ============================================
+    FOOTER
+    ============================================ -->
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+        </div>
+    </footer>
+    
+    <!-- Ditaruh di bawah sebelum </body> biar HTML di atasnya udah kebentuk
+    duluan sebelum script.js dieksekusi -->
+    <script src="/static/js/script.js"></script>
+</body>
+</html>
