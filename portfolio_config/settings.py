@@ -53,7 +53,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'portfolio.urls'
+CSRF_TRUSTED_ORIGINS = ['https://violin-monica-portofolio.pws.cs.ui.ac.id']
+ROOT_URLCONF = 'portfolio_config.urls'
 
 TEMPLATES = [
     {
@@ -74,7 +75,7 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 WHITENOISE_USE_FINDERS = True
-WSGI_APPLICATION = 'portfolio.wsgi.application'
+WSGI_APPLICATION = 'portfolio_config.wsgi.application'
 
 
 # Database

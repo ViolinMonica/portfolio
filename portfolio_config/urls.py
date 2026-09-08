@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from portfolio.views import landing_page
+from portfolio_config.views import landing_page
 
 urlpatterns = [
     path('admin/', admin.site.urls),
