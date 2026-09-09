@@ -1,7 +1,6 @@
 from django.shortcuts import render
 
 from main.models import Experience
-from testapp.models import Mahasiswa
 
 
 def show_main(request):
