@@ -41,5 +41,10 @@ class Project(models.Model):
     github_url = models.URLField(blank=True, null=True)
     demo_url = models.URLField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
         return self.title
+    
+    @property
+    def skills_list(self):
+        return [s.strip() for s in self.skills.split(',') if s.strip()]
