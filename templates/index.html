@@ -272,64 +272,27 @@
                 <!-- .project-grid otomatis nyusun card jadi beberapa kolom
                 responsive, lihat grid-template-columns di CSS -->
                 <div class="project-grid">
-                    
+                    { % for project in projects_list }
                     <div class="project-card">
                         <div class="card-image-wrap">
-                            <img src="/static/img/nusa-crop.png" alt="Mockup NUSA-CROP">
+                            <img src="{{ project.thumbnail.url }}" alt="{{ project.title }}">
                         </div>
                         <div class="card-body">
-                            <p class="card-title">NUSA-CROP</p>
-                            <p class="card-subtitle">NUSA-CROP is a crop recommendation system that helps identify the best
-                                local crops for marginal farmland using satellite imagery and
-                                environmental data. It's built for farmers working marginal land and the
-                                field officers who support them, turning local conditions into practical
-                                planting decisions.<br><br>
-                                Role: AI Engineer<br>designed and built the machine learning model behind
-                                the crop recommendations.
-                            </p>
+                            <p class="card-title">{{ project.title }}</p>
+                            <p class="card-subtitle">{{ project.description }}</p>
+                            {% for skill in project.skills_list %}
+                                <span class="tag">{{skill}}</span>
+                            {% endfor %}
+                            <span class="badge badge-{{ project.status }}">
+                                {{ project.get_status_display }}
+                            </span>
                             <!-- target="_blank" biar link kebuka di tab baru, nggak ninggalin portofolio -->
                             <div class="card-link">
-                                <a href="https://nusa-crop-gemastik.vercel.app/" class="project-link" target="_blank">View Project</a>
-                                <a href="https://github.com/ViolinMonica/AI-ML-NUSA-CROP-GEMASTIK-XIX" title="Github" class="github-link" target="_blank"><i class="devicon-github-plain colored"></i></a>
+                                <a href="{{ project.demo_url }}" class="project-link" target="_blank">View Project</a>
+                                <a href="{{ project.github_url }}" title="Github" class="github-link" target="_blank"><i class="devicon-github-plain colored"></i></a>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="project-card">
-                        <div class="card-image-wrap">
-                            <img src="/static/img/portofolio.png" alt="Mockup portfolio">
-                        </div>
-                        <div class="card-body">
-                            <p class="card-title">Portofolio</p>
-                            <p class="card-subtitle">You are currently seeing this project :) a self-built responsive portfolio site built from
-                                scratch with HTML, CSS, Django, and JavaScript to showcase my projects, skills,
-                                and background. Designed with a clean, straightforward layout so
-                                people can quickly get a sense of what I can do.
-                            </p>
-                            <div class="card-link">
-                                <a href="https://violin-monica-portofolio.pws.cs.ui.ac.id" class="project-link" target="_blank">View Project</a>
-                                <a href="https://github.com/ViolinMonica/portfolio" title="Github" class="github-link" target="_blank"><i class="devicon-github-plain colored"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="project-card">
-                        <div class="card-image-wrap">
-                            <img src="/static/img/bobol.png" alt="Mockup bobol">
-                        </div>
-                        <div class="card-body">
-                            <p class="card-title">CTF Challenge Author</p>
-                            <p class="card-subtitle">Designed and built security challenges that teach players reverse
-                                engineering and sandbox-escape skills, from beginner puzzles to a
-                                deployable network-based challenge.
-                            </p>
-                            <div class="card-link">
-                                <a href="https://bobol.netsos.id" class="project-link" target="_blank">View Project</a>
-                                <a href="https://github.com/ViolinMonica/soal-bobol" title="Github" class="github-link" target="_blank"><i class="devicon-github-plain colored"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                    
                 </div>
             </div>
         </section>
