@@ -629,6 +629,14 @@ h1, .brand {
     margin-bottom: 0.25rem;
 }
 
+.experience-group-title {
+    margin: 2rem 0 1rem;
+    font-size: 1.3rem;
+}
+.experience-group-title:first-of-type {
+    margin-top: 0;
+}
+
 .badge-completed   { background: rgb(76, 149, 76); }
 .badge-in-progress { background: rgb(163, 128, 54); }
 .badge-planning    { background: #5b6b7a; }
