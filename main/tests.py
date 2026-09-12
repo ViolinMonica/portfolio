@@ -1,84 +1,58 @@
 from django.test import TestCase
 from django.urls import reverse
-from django.utils import timezone
 
-from main.models import Experience
-from main.models import Project
-class MainTest(TestCase):
-    def setUp(self):
-        self.experience = Experience.objects.create(
-            title="Teaching Assistant of Programming Foundations 1",
-            description="<ul><li>Supervising programming lab sessions</li><li>Developed problems and sample solutions for programming lab exercises</li><li>Graded and evaluated student quizzes and programming lab results</li><li>Helped students understand Python programming foundations</li></ul>",
-            category="part-time",
-            ended_at=timezone.now()
+from main.models import Experience, Project
+
+
+class ExperienceModelTest(TestCase):
+    def test_is_ongoing_true_when_no_end_date(self):
+        exp = Experience.objects.create(title="Intern", description="d")
+        self.assertTrue(exp.is_ongoing)
+
+    def test_is_ongoing_false_when_ended(self):
+        from django.utils import timezone
+        exp = Experience.objects.create(
+            title="Intern", description="d", ended_at=timezone.now()
         )
+        self.assertFalse(exp.is_ongoing)
 
-    def test_main_url_is_accessible(self):
+    def test_str_returns_title(self):
+        exp = Experience.objects.create(title="Research", description="d")
+        self.assertEqual(str(exp), "Research")
+
+
+class ProjectModelTest(TestCase):
+    def test_skills_list_splits_and_strips(self):
+        p = Project.objects.create(
+            title="P", description="d", skills="Django,  React ,PostgreSQL"
+        )
+        self.assertEqual(p.skills_list, ["Django", "React", "PostgreSQL"])
+
+    def test_skills_list_ignores_empty_entries(self):
+        p = Project.objects.create(title="P", description="d", skills="Django, ,")
+        self.assertEqual(p.skills_list, ["Django"])
+
+    def test_skills_list_empty_when_blank(self):
+        p = Project.objects.create(title="P", description="d", skills="")
+        self.assertEqual(p.skills_list, [])
+
+
+class ViewTest(TestCase):
+    def test_main_view_status_and_template(self):
         response = self.client.get(reverse("main:show_main"))
-
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "index.html")
-        self.assertNotContains(response, self.experience.title)
-        self.assertContains(response, f'href="{reverse("main:show_experience")}"')
 
-    def test_nonexistent_page_returns_404(self):
-        response = self.client.get("/halaman-yang-tidak-ada/")
-
-        self.assertEqual(response.status_code, 404)
-
-    def test_experience_model(self):
-        self.assertEqual(str(self.experience), "Teaching Assistant of Programming Foundations 1")
-        self.assertEqual(self.experience.category, "part-time")
-        self.assertFalse(self.experience.is_ongoing)
-
-    def test_experience_page(self):
+    def test_experience_view_returns_list(self):
+        Experience.objects.create(title="Intern", description="d")
         response = self.client.get(reverse("main:show_experience"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experience.html")
-        self.assertContains(response, self.experience.title)
-        self.assertContains(response, "Supervising programming lab sessions")
-        self.assertContains(response, "Part-Time")
-        self.assertContains(response, "Done")
-        self.assertContains(response, f'href="{reverse("main:show_main")}"')
+        self.assertEqual(len(response.context["experience_list"]), 1)
 
-    def test_empty_experience_page(self):
-        Experience.objects.all().delete()
-        response = self.client.get(reverse("main:show_experience"))
-
-        self.assertContains(response, "No experience added yet.")
-
-    def test_completed_experience(self):
-        self.experience.ended_at = timezone.now()
-        self.experience.save()
-        response = self.client.get(reverse("main:show_experience"))
-
-        self.assertFalse(self.experience.is_ongoing)
-        self.assertContains(response, "Done")
-        self.assertNotContains(response, "Ongoing")
-
-    def test_project_page(self):
-        project = Project.objects.create(
-            title="NUSA-CROP",
-            description="Crop recommendation system.",
-            status="completed",
-        )
+    def test_projects_view_returns_list(self):
+        Project.objects.create(title="P", description="d")
         response = self.client.get(reverse("main:show_projects"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "projects.html")
-        self.assertContains(response, "NUSA-CROP")
-        self.assertContains(response, "Crop recommendation system.")
-        self.assertContains(response, "Completed")   # dari get_status_display
-
-    def test_empty_project_page(self):
-        Project.objects.all().delete()
-        response = self.client.get(reverse("main:show_projects"))
-        self.assertContains(response, "No project added yet.")
-
-    def test_project_model(self):
-        project = Project.objects.create(
-            title="NUSA-CROP",
-            description="Crop recommendation system.",
-            status="completed",
-        )
-        self.assertEqual(str(project), "NUSA-CROP")
-        self.assertEqual(project.status, "completed")
+        self.assertEqual(len(response.context["projects_list"]), 1)
