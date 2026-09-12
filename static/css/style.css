@@ -575,3 +575,8 @@ h1, .brand {
 .experience-description li {
     margin-bottom: 0.25rem;
 }
+
+.badge-completed { background: green; }
+.badge-in-progress { background: orange; }
+.badge-planning { background: gray; }
+.badge-archived { background: #999; }

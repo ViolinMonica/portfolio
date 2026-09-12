@@ -5,21 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ name }} - Projects</title>
 
-    <!-- Font "Space Grotesk" dari Google Fonts, dipakai buat nama & judul section -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="/static/css/style.css">
-
-    <!-- Devicon: library font icon buat logo bahasa pemrograman & tools (Python, Git, dll) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon/devicon.min.css">
 </head>
 <body>
 
-    <!-- ============================================
-    HEADER / NAVBAR  (konsisten dengan halaman lain)
-    ============================================ -->
     <header class="site-header">
         <div class="container">
             <a href="{% url 'main:show_main' %}" class="brand">{{ name }}</a>
@@ -33,19 +26,11 @@
     </header>
 
     <main>
-        <!-- ============================================
-        PROJECTS SECTION — daftar proyek yang pernah dibuat
-        ============================================ -->
-        <section class="projects" id="projects">
+        <section class="projects-section" id="projects">
             <div class="container">
+                <p class="section-kicker">Stuff I Built</p>
+                <h1>Projects</h1>
 
-                <div class="section-header">
-                    <p class="hero-kicker">Stuff I Built</p>
-                    <h2>Projects</h2>
-                </div>
-
-                <!-- .project-grid otomatis nyusun card jadi beberapa kolom
-                responsive, lihat grid-template-columns di CSS -->
                 <div class="project-grid">
                     {% for project in projects_list %}
                         <div class="project-card">
@@ -82,13 +67,12 @@
         </section>
     </main>
 
-    <!-- ============================================
-    FOOTER  (konsisten dengan halaman lain)
-    ============================================ -->
     <footer class="site-footer">
         <div class="container">
             <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
         </div>
     </footer>
+
+    <script src="/static/js/script.js"></script>
 </body>
 </html>
