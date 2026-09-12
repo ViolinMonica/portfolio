@@ -43,9 +43,11 @@
                                 <p class="card-title">{{ project.title }}</p>
                                 <p class="card-subtitle">{{ project.description|linebreaksbr }}</p>
 
-                                {% for skill in project.skills_list %}
-                                    <span class="tag">{{ skill }}</span>
-                                {% endfor %}
+                                <div class="tag-list">
+                                    {% for skill in project.skills_list %}
+                                        <span class="tag">{{ skill }}</span>
+                                    {% endfor %}
+                                </div>
 
                                 <span class="badge badge-{{ project.status }}">
                                     {{ project.get_status_display }}
