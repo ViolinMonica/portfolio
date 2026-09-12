@@ -5,7 +5,6 @@ from main.models import Experience, Project
 
 def show_main(request):
     context = {
-        "name": "Violin Monica",
         "npm": "2506551794",
         "study_program": "S1 Ilmu Komputer",
         "bio": (
@@ -25,7 +24,6 @@ def show_main(request):
 def show_experience(request):
     experiences = Experience.objects.all().order_by("-started_at")
     context = {
-        "name": "Violin Monica",
         "ongoing_list": [e for e in experiences if e.is_ongoing],
         "past_list": [e for e in experiences if not e.is_ongoing],
     }
@@ -34,7 +32,6 @@ def show_experience(request):
 
 def show_projects(request):
     context = {
-        "name": "Violin Monica",
         "projects_list": Project.objects.all().order_by("-created_at"),
     }
     return render(request, "projects.html", context)

@@ -2,7 +2,10 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from main.context_processors import site_identity
 from main.models import Experience, Project
+
+
 class ExperienceModelTest(TestCase):
     def test_is_ongoing_true_when_no_end_date(self):
         exp = Experience.objects.create(title="Intern", description="d")
@@ -14,6 +17,7 @@ class ExperienceModelTest(TestCase):
         )
         self.assertFalse(exp.is_ongoing)
 
+
 class ProjectModelTest(TestCase):
     def test_skills_list_splits_and_strips(self):
         p = Project.objects.create(
@@ -24,6 +28,16 @@ class ProjectModelTest(TestCase):
     def test_skills_list_empty_when_blank(self):
         p = Project.objects.create(title="P", description="d", skills="")
         self.assertEqual(p.skills_list, [])
+
+class ContextProcessorTest(TestCase):
+    def test_site_identity_returns_name(self):
+        self.assertEqual(site_identity(None)["name"], "Violin Monica")
+
+    def test_name_available_on_pages_without_being_in_view(self):
+        # show_projects tidak menaruh "name" di context; harus datang
+        # dari context processor.
+        response = self.client.get(reverse("main:show_projects"))
+        self.assertContains(response, "Violin Monica")
 
 class ExperiencePageTest(TestCase):
     def test_url_accessible_and_uses_template(self):
