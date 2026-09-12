@@ -257,45 +257,6 @@
                 
             </div>
         </section>
-        
-        <!-- ============================================
-        PROJECTS SECTION — daftar proyek yang pernah dibuat
-        ============================================ -->
-        <section class="projects" id="projects">
-            <div class="container">
-                
-                <div class="section-header">
-                    <p class="hero-kicker">Stuff I Built</p>
-                    <h2>Projects</h2>
-                </div>
-                
-                <!-- .project-grid otomatis nyusun card jadi beberapa kolom
-                responsive, lihat grid-template-columns di CSS -->
-                <div class="project-grid">
-                    { % for project in projects_list }
-                    <div class="project-card">
-                        <div class="card-image-wrap">
-                            <img src="{{ project.thumbnail.url }}" alt="{{ project.title }}">
-                        </div>
-                        <div class="card-body">
-                            <p class="card-title">{{ project.title }}</p>
-                            <p class="card-subtitle">{{ project.description }}</p>
-                            {% for skill in project.skills_list %}
-                                <span class="tag">{{skill}}</span>
-                            {% endfor %}
-                            <span class="badge badge-{{ project.status }}">
-                                {{ project.get_status_display }}
-                            </span>
-                            <!-- target="_blank" biar link kebuka di tab baru, nggak ninggalin portofolio -->
-                            <div class="card-link">
-                                <a href="{{ project.demo_url }}" class="project-link" target="_blank">View Project</a>
-                                <a href="{{ project.github_url }}" title="Github" class="github-link" target="_blank"><i class="devicon-github-plain colored"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
     </main>
     <!-- ============================================
     FOOTER
