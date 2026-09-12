@@ -41,6 +41,7 @@ class Project(models.Model):
     github_url = models.URLField(blank=True, null=True)
     demo_url = models.URLField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    thumbnail = models.ImageField(upload_to='thumbnails/', blank=True, null=True)
 
     def __str__(self):
         return self.title
