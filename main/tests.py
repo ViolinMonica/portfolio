@@ -3,8 +3,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from main.models import Experience
-
-
+from main.models import Project
 class MainTest(TestCase):
     def setUp(self):
         self.experience = Experience.objects.create(
@@ -34,11 +33,10 @@ class MainTest(TestCase):
 
     def test_experience_page(self):
         response = self.client.get(reverse("main:show_experience"))
-
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "experience.html")
         self.assertContains(response, self.experience.title)
-        self.assertContains(response, self.experience.description)
+        self.assertContains(response, "Supervising programming lab sessions")
         self.assertContains(response, "Part-Time")
         self.assertContains(response, "Done")
         self.assertContains(response, f'href="{reverse("main:show_main")}"')
@@ -57,3 +55,30 @@ class MainTest(TestCase):
         self.assertFalse(self.experience.is_ongoing)
         self.assertContains(response, "Done")
         self.assertNotContains(response, "Ongoing")
+
+    def test_project_page(self):
+        project = Project.objects.create(
+            title="NUSA-CROP",
+            description="Crop recommendation system.",
+            status="completed",
+        )
+        response = self.client.get(reverse("main:show_projects"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "projects.html")
+        self.assertContains(response, "NUSA-CROP")
+        self.assertContains(response, "Crop recommendation system.")
+        self.assertContains(response, "Completed")   # dari get_status_display
+
+    def test_empty_project_page(self):
+        Project.objects.all().delete()
+        response = self.client.get(reverse("main:show_projects"))
+        self.assertContains(response, "No project added yet.")
+
+    def test_project_model(self):
+        project = Project.objects.create(
+            title="NUSA-CROP",
+            description="Crop recommendation system.",
+            status="completed",
+        )
+        self.assertEqual(str(project), "NUSA-CROP")
+        self.assertEqual(project.status, "completed")
