@@ -23,9 +23,11 @@ def show_main(request):
 
 
 def show_experience(request):
+    experiences = Experience.objects.all().order_by("-started_at")
     context = {
         "name": "Violin Monica",
-        "experience_list": Experience.objects.all().order_by("-started_at"),
+        "ongoing_list": [e for e in experiences if e.is_ongoing],
+        "past_list": [e for e in experiences if not e.is_ongoing],
     }
     return render(request, "experience.html", context)
 
