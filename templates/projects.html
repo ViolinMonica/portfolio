@@ -34,12 +34,14 @@
                 <div class="project-grid">
                     {% for project in projects_list %}
                         <div class="project-card">
-                            <div class="card-image-wrap">
-                                <img src="{{ project.thumbnail }}" alt="{{ project.title }}">
-                            </div>
+                            {% if project.thumbnail %}
+                                <div class="card-image-wrap">
+                                    <img src="{{ project.thumbnail.url }}" alt="{{ project.title }}">
+                                </div>
+                            {% endif %}
                             <div class="card-body">
                                 <p class="card-title">{{ project.title }}</p>
-                                <p class="card-subtitle">{{ project.description }}</p>
+                                <p class="card-subtitle">{{ project.description|linebreaksbr }}</p>
 
                                 {% for skill in project.skills_list %}
                                     <span class="tag">{{ skill }}</span>
