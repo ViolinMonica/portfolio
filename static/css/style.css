@@ -405,148 +405,6 @@ h1, .brand {
 }
 
 /* ============================================
-   PROJECTS SECTION
-   ============================================ */
-
-/* Grid dasarnya diatur di blok GRID SECTION gabungan di atas.
-   Project sengaja pakai kolom minimal lebih lebar (260px) & gap lebih besar,
-   jadi di-override di sini. */
-.project-grid {
-    gap: 2rem;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-}
-
-.project-card {
-    width: 100%;
-    background-color: #ffffff;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    overflow: hidden; /* biar gambar ikut kepotong sudut membulat card */
-    display: flex;
-    flex-direction: column; /* gambar di atas, body di bawah */
-}
-
-.card-image-wrap {
-    position: relative;
-    height: 160px; /* tinggi tetap, gambar apapun ukurannya di-crop rapi */
-    overflow: hidden;
-}
-
-.card-image-wrap img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.card-body {
-    padding: 1rem 1.1rem 1.2rem;
-    display: flex;
-    flex-direction: column;
-    flex: 1; /* ngisi sisa tinggi card, biar tombol selalu di bawah */
-}
-
-.card-title {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: #1c1c1c;
-    margin-bottom: 0.15rem;
-}
-
-.card-subtitle {
-    font-size: 0.8rem;
-    color: #8a8a8a;
-    margin-bottom: 0.9rem;
-    text-align: justify;
-}
-
-/* Baris tombol "View Project" + icon GitHub */
-.card-link {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-top: auto; /* dorong baris ini selalu nempel ke bawah card */
-}
-
-.project-link {
-    flex: 1; /* ambil sisa ruang, icon GitHub di sebelahnya ukuran tetap */
-    text-align: center;
-    text-decoration: none;
-    background-color: #111111;
-    color: #ffffff;
-    border-radius: 999px; /* angka gede = bulat penuh, jadi bentuk pill */
-    padding: 0.75rem 0;
-    font-size: 0.8rem;
-    font-weight: 600;
-    transition: background-color 0.2s ease;
-}
-
-.project-link:hover {
-    background-color: var(--accent);
-}
-
-.github-link {
-    text-decoration: none;
-    width: 44px;
-    height: 44px;
-    flex-shrink: 0; /* ukuran tetap, nggak ikut ngecil pas ruang sempit */
-    border-radius: 50%; /* jadi lingkaran penuh */
-    border: 1px solid var(--line);
-    display: flex;
-    align-items: center;
-    justify-content: center; /* icon center di dalam lingkaran */
-    transition: background-color 0.2s ease;
-}
-
-.github-link:hover {
-    background-color: var(--accent);
-}
-
-.github-link i {
-    font-size: 1.3rem;
-    color: var(--ink);
-}
-
-/* ============================================
-   TAG (skill di dalam project card)
-   Dipakai di projects.html: {% for skill in project.skills_list %}
-   ============================================ */
-.tag {
-    display: inline-block;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--ink);
-    background-color: transparent;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 0.25rem 0.6rem;
-}
-
-.tag-list {
-    display: flex;
-    flex-wrap: wrap;       
-    gap: 0.4rem;
-    margin-bottom: 0.9rem;
-}
-
-/* ============================================
-   BADGE (status project) — bentuk dasar
-   Warna tiap status ada di paling bawah (.badge-completed dll)
-   ============================================ */
-.badge {
-    display: inline-block;
-    width: fit-content;      /* selebar teksnya aja, nggak melar */
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #fff;             /* teks putih di atas warna badge */
-    border-radius: 999px;
-    padding: 0.25rem 0.7rem;
-    margin-bottom: 0.9rem;
-}
-
-/* ============================================
    DROPDOWN FILTER SKILL
    ============================================ */
 
@@ -637,7 +495,270 @@ h1, .brand {
     margin-top: 0;
 }
 
-.badge-completed   { background: rgb(76, 149, 76); }
-.badge-in-progress { background: rgb(163, 128, 54); }
-.badge-planning    { background: #5b6b7a; }
-.badge-archived    { background: #9a9a9a; }
+
+.project-form {
+    width: 100%;
+    max-width: 100%;
+    margin-top: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 700;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.7rem;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    font: inherit;
+    transition:
+        border-color 0.2s ease,
+        outline-color 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: 2px solid var(--accent);
+    border-color: var(--accent);
+}
+
+.form-error {
+    color: #b42318;
+    font-size: 0.85rem;
+    margin-top: 0.35rem;
+}
+
+.button {
+    display: inline-block;
+    height: fit-content;
+    border: 0;
+    border-radius: var(--radius);
+    padding: 0.65rem 1rem;
+    background: var(--accent);
+    color: white;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.button-secondary {
+    background: var(--ink);
+}
+
+/* projects */
+
+.project-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.project-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.project-grid .experience-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.project-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid black;
+    border-radius: var(--radius);
+}
+
+.project-header h1 {
+    margin-bottom: 0;
+}
+
+.project-add-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.project-add-button span {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.project-search {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.project-search__input {
+    width: 100%;
+    min-width: 0;
+    padding: 0.7rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+}
+
+.project-search__input:focus {
+    outline: 2px solid var(--accent);
+    border-color: var(--accent);
+}
+
+.project-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 1rem;
+}
+
+.project-actions .button {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.project-card-actions {
+    display: flex;
+    flex-direction: column;
+    margin-top: auto;
+}
+
+.hide {
+    display: none !important;
+}
+
+.project-actions .experience-status {
+    margin-top: 0;
+}
+
+.project-delete-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 1rem;
+    border: 0;
+    background: transparent;
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+}
+
+.project-delete-modal:popover-open {
+    display: flex;
+}
+
+.project-delete-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    padding: 0;
+    background: rgba(28, 25, 23, 0.58);
+    cursor: default;
+}
+
+.project-delete-modal__content {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 480px);
+    padding: 1.5rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: 0 1rem 3rem rgba(28, 25, 23, 0.22);
+}
+
+.project-delete-modal__content h2 {
+    margin: 0 0 0.75rem;
+    font-family:
+        "Space Grotesk",
+        -apple-system,
+        sans-serif;
+    font-size: 1.5rem;
+}
+
+.project-delete-modal__close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.project-delete-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.button-danger {
+    background: #b42318;
+}
+
+@media (max-width: 600px) {
+    .project-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .project-add-button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .project-search {
+        flex-direction: column;
+    }
+
+    .project-search .button {
+        width: 100%;
+    }
+
+    .project-delete-modal {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .project-delete-modal__content {
+        width: 100%;
+        padding: 1.25rem;
+        border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .project-delete-modal__actions {
+        flex-direction: column-reverse;
+    }
+
+    .project-delete-modal__actions .button {
+        width: 100%;
+        text-align: center;
+    }
+}

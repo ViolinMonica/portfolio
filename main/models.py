@@ -26,26 +26,12 @@ class Experience(models.Model):
         return self.ended_at is None
 
 class Project(models.Model):
-    STATUS_CHOICES = [
-        ('planning', 'Planning'),
-        ('in-progress', 'In Progress'),
-        ('completed', 'Completed'),
-        ('archived', 'Archived')
-    ]
-    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255)
     description = models.TextField()
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='completed')
-    skills = models.CharField(max_length=255, blank=True, help_text="Pisahkan dengan koma, mis. Django, React, PostgreSQL")
-    github_url = models.URLField(blank=True, null=True)
-    demo_url = models.URLField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    thumbnail = models.ImageField(upload_to='thumbnails/', blank=True, null=True)
+    tech_stack = models.CharField(max_length=255)
+    project_url = models.URLField(blank=True)
+    project_image_url = models.URLField(blank=True, max_length=500)
 
     def __str__(self):
         return self.title
-    
-    @property
-    def skills_list(self):
-        return [s.strip() for s in self.skills.split(',') if s.strip()]

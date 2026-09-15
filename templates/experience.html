@@ -1,48 +1,50 @@
 {% extends "base.html" %}
-
-{% block title %}{{ name }} - Experience{% endblock %}
-
+{% block meta %}
+    <title>Experience - {{ name }}</title>
+{% endblock meta %}
 {% block content %}
-<section class="experience-section" id="experience">
-    <div class="container">
-        <p class="section-kicker">My Journey So Far</p>
-        <h1>Experience</h1>
+    <main>
+        <section class="experience-section" id="experience">
+            <div class="container">
+                <p class="section-kicker">My Journey So Far</p>
+                <h1>Experience</h1>
 
-        <h2 class="experience-group-title">Ongoing</h2>
-        <div class="experience-grid">
-            {% for experience in ongoing_list %}
-                <article class="experience-card">
-                    <span class="experience-category">
-                        {{ experience.get_category_display }}
-                    </span>
-                    <h2>{{ experience.title }}</h2>
-                    <div class="experience-description">
-                        {{ experience.description|linebreaksbr }}
-                    </div>
-                    <p class="experience-status">Ongoing</p>
-                </article>
-            {% empty %}
-                <p class="empty-state">No ongoing experience.</p>
-            {% endfor %}
-        </div>
+                <h2 class="experience-group-title">Ongoing</h2>
+                <div class="experience-grid">
+                    {% for experience in ongoing_list %}
+                        <article class="experience-card">
+                            <span class="experience-category">
+                                {{ experience.get_category_display }}
+                            </span>
+                            <h2>{{ experience.title }}</h2>
+                            <div class="experience-description">
+                                {{ experience.description|linebreaksbr }}
+                            </div>
+                            <p class="experience-status">Ongoing</p>
+                        </article>
+                    {% empty %}
+                        <p class="empty-state">No ongoing experience.</p>
+                    {% endfor %}
+                </div>
 
-        <h2 class="experience-group-title">Past</h2>
-        <div class="experience-grid">
-            {% for experience in past_list %}
-                <article class="experience-card">
-                    <span class="experience-category">
-                        {{ experience.get_category_display }}
-                    </span>
-                    <h2>{{ experience.title }}</h2>
-                    <div class="experience-description">
-                        {{ experience.description|linebreaksbr }}
-                    </div>
-                    <p class="experience-status">Done</p>
-                </article>
-            {% empty %}
-                <p class="empty-state">No past experience yet.</p>
-            {% endfor %}
-        </div>
-    </div>
-</section>
-{% endblock %}
+                <h2 class="experience-group-title">Past</h2>
+                <div class="experience-grid">
+                    {% for experience in past_list %}
+                        <article class="experience-card">
+                            <span class="experience-category">
+                                {{ experience.get_category_display }}
+                            </span>
+                            <h2>{{ experience.title }}</h2>
+                            <div class="experience-description">
+                                {{ experience.description|linebreaksbr }}
+                            </div>
+                            <p class="experience-status">Done</p>
+                        </article>
+                    {% empty %}
+                        <p class="empty-state">No past experience yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock content %}
