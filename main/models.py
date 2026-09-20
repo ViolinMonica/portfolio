@@ -25,6 +25,7 @@ class Experience(models.Model):
     def is_ongoing(self):
         return self.ended_at is None
 
+
 class Project(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255)
@@ -35,6 +36,7 @@ class Project(models.Model):
 
     def __str__(self):
         return self.title
+
 
 class SkillCategory(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -58,14 +60,16 @@ class SkillCategory(models.Model):
 
     def __str__(self):
         return self.name
+
+    
 class Skill(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     category = models.ForeignKey(
         SkillCategory,
         on_delete=models.PROTECT,
         related_name="skills",
     )
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     icon = models.CharField(max_length=200, blank=True)
     is_featured = models.BooleanField(default=False)

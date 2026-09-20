@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.core import serializers
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+
 from main.forms import ProjectForm, SkillForm
 from main.models import Experience, Project, Skill, SkillCategory
 
@@ -74,15 +75,16 @@ def show_projects(request):
     }
     return render(request, "project.html", context)
 
+
 def delete_project(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
 
     if request.method == "POST":
         project.delete()
         messages.success(request, "Project berhasil dihapus!")
-        return redirect("main:show_projects")
 
     return redirect("main:show_projects")
+
 
 def get_skills_json(request):
     return HttpResponse(
@@ -111,10 +113,12 @@ def _categories_with_skills(request):
 
     return categories
 
+
 def show_skills(request):
     return render(
         request, "skill.html", {"category_list": _categories_with_skills(request)}
     )
+
 
 def create_skill(request):
     form = SkillForm(request.POST or None)
@@ -125,6 +129,7 @@ def create_skill(request):
         return redirect("main:show_skills")
 
     return render(request, "skills_form.html", {"form": form})
+
 
 def edit_skill(request, skill_id):
     skill = get_object_or_404(Skill, pk=skill_id)
