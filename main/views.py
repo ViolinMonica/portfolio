@@ -22,7 +22,6 @@ def show_main(request):
             "violin.monica@ui.ac.id or violin.monica@ristek.cs.ui.ac.id or "
             "violinmonica190207@gmail.com."
         ),
-        "category_list": _categories_with_skills(request),
     }
     return render(request, "index.html", context)
 
