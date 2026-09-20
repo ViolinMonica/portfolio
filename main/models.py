@@ -1,6 +1,6 @@
 import uuid
 from django.db import models
-
+from django.utils.text import slugify
 class Experience(models.Model):
     EXPERIENCE_CHOICES = [
         ('internship', 'Internship'),
@@ -36,28 +36,39 @@ class Project(models.Model):
     def __str__(self):
         return self.title
 
+class SkillCategory(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=50, unique=True)
+    slug = models.SlugField(max_length=60, unique=True, blank=True)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'name']
+        verbose_name_plural = 'skill categories'
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
 class Skill(models.Model):
-    CATEGORY_CHOICES = [
-        ('languages', 'Languages'),
-        ('programming', 'Programming Languages'),
-        ('fullstack', 'Fullstack'),
-        ('database', 'Database'),
-        ('cybersecurity', 'Cybersecurity'),
-        ('tools', 'Tools'),
-        ('robotic', 'Robotic'),
-        ('design', 'Beside the Keyboard'),
-    ]
+    category = models.ForeignKey(
+        SkillCategory,
+        on_delete=models.PROTECT,
+        related_name="skills",
+    )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
-    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='tools')
     icon = models.CharField(max_length=100, blank=True)
     proficiency = models.PositiveSmallIntegerField(default=3)
     is_featured = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['category', '-proficiency', 'name']
+        ordering = ['category__order', '-proficiency', 'name']
 
     def __str__(self):
         return self.name
