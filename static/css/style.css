@@ -815,7 +815,7 @@ h1, .brand {
 .form-message.success { border-color: #2e7d32; color: #2e7d32; }
 .form-message.error   { border-color: #b42318; color: #b42318; }
 
-/* ---------- SKILL: level & unggulan ---------- */
+/* ---------- SKILL: unggulan ---------- */
 
 /* Skill unggulan dikasih aksen biar kebedain dari yang lain */
 .skill-pill--featured {
@@ -829,40 +829,65 @@ h1, .brand {
     font-size: 0.8rem;
 }
 
-/* Titik penguasaan, cuma dimunculin di halaman kelola skill */
-.skill-pill__level {
-    color: var(--text-muted);
-    font-size: 0.7rem;
-    letter-spacing: 0.08em;
-}
+/* ---------- SKILL: item yang bisa dikelola ---------- */
 
-.skill-pill:hover .skill-pill__level { color: var(--paper); }
-
-/* ---------- SKILL: tombol kelola ---------- */
-
+/* Bingkainya pindah ke .skill-item, pill di dalamnya dibikin polos.
+   Hasilnya tiap skill tetap tampil sebagai SATU pill, tombolnya nempel di dalam. */
 .skill-item {
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.4rem;
+    padding: 0.4rem 0.5rem 0.4rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    transition: border-color 0.2s ease;
+}
+
+.skill-item:hover { border-color: var(--accent); }
+
+.skill-item .skill-pill {
+    border: 0;
+    padding: 0;
+    background: none;
+}
+
+/* Matiin hover pill bawaan di dalam skill-item, biar hover-nya satu objek */
+.skill-item .skill-pill:hover {
+    background: none;
+    color: var(--ink);
+}
+
+.skill-item__actions {
+    display: inline-flex;
+    gap: 0.1rem;
+    padding-left: 0.3rem;
+    border-left: 1px solid var(--line);
 }
 
 .skill-action {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.6rem;
-    height: 1.6rem;
-    padding: 0;
-    border: 1px solid var(--line);
+    padding: 0.2rem 0.35rem;
+    border: 0;
     border-radius: var(--radius);
-    background: transparent;
+    background: none;
     color: var(--text-muted);
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     line-height: 1;
     text-decoration: none;
     cursor: pointer;
+    transition: color 0.15s ease, background-color 0.15s ease;
 }
 
-.skill-action:hover { border-color: var(--accent); color: var(--accent); }
-.skill-action--danger:hover { border-color: #b42318; color: #b42318; }
+.skill-action:hover {
+    color: var(--accent);
+    background-color: rgba(217, 93, 57, 0.12);
+}
+
+.skill-action--danger:hover {
+    color: #b42318;
+    background-color: rgba(180, 35, 24, 0.12);
+}
+
 .skill-action-form { display: inline-flex; margin: 0; }

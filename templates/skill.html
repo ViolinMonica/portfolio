@@ -22,21 +22,21 @@
                         <div class="skill-list">
                             {% for skill in category.skills.all %}
                                 <div class="skill-item">
-                                    {% include "components/skill_pill.html" with skill=skill show_level=True %}
-                                    <a href="{% url 'main:edit_skill' skill.id %}"
-                                       class="skill-action"
-                                       title="Edit {{ skill.name }}"
-                                       aria-label="Edit {{ skill.name }}">&#9998;</a>
-                                    <form method="post"
-                                          action="{% url 'main:delete_skill' skill.id %}"
-                                          class="skill-action-form"
-                                          onsubmit="return confirm('Hapus {{ skill.name|escapejs }}?');">
-                                        {% csrf_token %}
-                                        <button type="submit"
-                                                class="skill-action skill-action--danger"
-                                                title="Hapus {{ skill.name }}"
-                                                aria-label="Hapus {{ skill.name }}">&times;</button>
-                                    </form>
+                                    {% include "components/skill_pill.html" with skill=skill %}
+                                    <span class="skill-item__actions">
+                                        <a href="{% url 'main:edit_skill' skill.id %}"
+                                           class="skill-action"
+                                           aria-label="Edit {{ skill.name }}">&#9998;</a>
+                                        <form method="post"
+                                              action="{% url 'main:delete_skill' skill.id %}"
+                                              class="skill-action-form"
+                                              onsubmit="return confirm('Hapus {{ skill.name|escapejs }}?');">
+                                            {% csrf_token %}
+                                            <button type="submit"
+                                                    class="skill-action skill-action--danger"
+                                                    aria-label="Hapus {{ skill.name }}">&times;</button>
+                                        </form>
+                                    </span>
                                 </div>
                             {% empty %}
                                 <p class="empty-state">Belum ada skill di kategori ini.</p>

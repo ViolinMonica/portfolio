@@ -1,7 +1,6 @@
 from django.forms import ModelForm, TextInput, Textarea, URLInput
 from django.forms import (
-    CharField, CheckboxInput, IntegerField, ModelForm,
-    NumberInput, Select, TextInput,
+    CharField, CheckboxInput, ModelForm, Select, TextInput,
 )
 from main.models import Project
 from main.models import Skill, SkillCategory
@@ -62,17 +61,9 @@ class SkillForm(ModelForm):
         widget=TextInput(attrs={"placeholder": "Machine Learning"}),
         help_text="Isi kalau kategori yang kamu mau belum ada di dropdown.",
     )
-    proficiency = IntegerField(
-        min_value=1,
-        max_value=5,
-        initial=3,
-        label="Tingkat Penguasaan (1-5)",
-        widget=NumberInput(attrs={"min": 1, "max": 5}),
-    )
-
     class Meta:
         model = Skill
-        fields = ["name", "category", "icon", "proficiency", "is_featured"]
+        fields = ["name", "category", "icon", "is_featured"]
 
         labels = {
             "name": "Nama Skill",

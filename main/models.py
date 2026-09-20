@@ -68,7 +68,6 @@ class Skill(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     icon = models.CharField(max_length=200, blank=True)
-    proficiency = models.PositiveSmallIntegerField(default=3)
     is_featured = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -85,7 +84,3 @@ class Skill(models.Model):
     
     def __str__(self):
         return self.name
-
-    @property
-    def proficiency_dots(self):
-        return "●" * self.proficiency + "○" * (5 - self.proficiency)
