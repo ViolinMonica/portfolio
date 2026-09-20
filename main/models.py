@@ -35,3 +35,29 @@ class Project(models.Model):
 
     def __str__(self):
         return self.title
+
+class Skill(models.Model):
+    CATEGORY_CHOICES = [
+        ('languages', 'Languages'),
+        ('programming', 'Programming Languages'),
+        ('fullstack', 'Fullstack'),
+        ('database', 'Database'),
+        ('cybersecurity', 'Cybersecurity'),
+        ('tools', 'Tools'),
+        ('robotic', 'Robotic'),
+        ('design', 'Beside the Keyboard'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='tools')
+    icon = models.CharField(max_length=100, blank=True)
+    proficiency = models.PositiveSmallIntegerField(default=3)
+    is_featured = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['category', '-proficiency', 'name']
+
+    def __str__(self):
+        return self.name
