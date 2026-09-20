@@ -28,7 +28,7 @@
                     <div class="skill-category" data-category="{{ category.slug }}">
                         <h3 class="skill-category-title">{{ category.name }}</h3>
                         <div class="skill-list">
-                            {% for skill in category.skills.all %}
+                            {% for skill in category.skill_items %}
                                 <div class="skill-item">
                                     {% include "components/skill_pill.html" with skill=skill %}
                                     <a href="{% url 'main:edit_skill' skill.id %}"

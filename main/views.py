@@ -22,6 +22,7 @@ def show_main(request):
             "violin.monica@ui.ac.id or violin.monica@ristek.cs.ui.ac.id or "
             "violinmonica190207@gmail.com."
         ),
+        "category_list": _categories_with_skills(request),
     }
     return render(request, "index.html", context)
 
@@ -78,7 +79,6 @@ def show_projects(request):
     }
     return render(request, "project.html", context)
 
-
 def delete_project(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
 
@@ -89,12 +89,37 @@ def delete_project(request, project_id):
 
     return redirect("main:show_projects")
 
-def show_skills(request):
-    context = {
-        "category_list": SkillCategory.objects.prefetch_related("skills"),
-    }
-    return render(request, "skill.html", context)
+def get_skills_json(request):
+    return HttpResponse(
+        serializers.serialize("json", Skill.objects.all()),
+        content_type="application/json",
+    )
 
+
+def _categories_with_skills(request):
+    """Ambil skill lewat endpoint JSON, deserialisasi, lalu kelompokkan per kategori."""
+    json_response = get_skills_json(request)
+    skills = [
+        wrapper.object
+        for wrapper in serializers.deserialize(
+            "json", json_response.content.decode("utf-8")
+        )
+    ]
+
+    categories = list(SkillCategory.objects.all())
+    grouped = {category.id: [] for category in categories}
+    for skill in skills:
+        grouped[skill.category_id].append(skill)
+
+    for category in categories:
+        category.skill_items = grouped[category.id]
+
+    return categories
+
+def show_skills(request):
+    return render(
+        request, "skill.html", {"category_list": _categories_with_skills(request)}
+    )
 
 def create_skill(request):
     form = SkillForm(request.POST or None)
