@@ -85,3 +85,7 @@ class Skill(models.Model):
     
     def __str__(self):
         return self.name
+
+    @property
+    def proficiency_dots(self):
+        return "●" * self.proficiency + "○" * (5 - self.proficiency)
