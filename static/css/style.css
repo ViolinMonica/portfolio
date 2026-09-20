@@ -131,6 +131,20 @@ h1, .brand {
     margin-bottom: 3rem;
 }
 
+/* Header harus melebar penuh nutupin semua kolom grid, bukan nyempit
+   jadi selebar satu .skill-category. (komentar di baris 333 minta ini) */
+.section-header {
+    grid-column: 1 / -1;
+}
+
+/* skill.html pakai <h1> karena itu judul halaman, index.html pakai <h2>
+   karena cuma judul section — dua-duanya dapet ukuran yang sama */
+.section-header h1 {
+    font-family: "Space Grotesk", -apple-system, sans-serif;
+    font-size: clamp(2.2rem, 5vw, 3.5rem);
+    line-height: 0.95;
+}
+
 .section-header h2 {
     font-family: "Space Grotesk", -apple-system, sans-serif;
     /* clamp(min, ideal, max): ukuran font otomatis menyesuaikan lebar layar,
@@ -831,56 +845,43 @@ h1, .brand {
 
 /* ---------- SKILL: item yang bisa dikelola ---------- */
 
-/* Bingkainya pindah ke .skill-item, pill di dalamnya dibikin polos.
-   Hasilnya tiap skill tetap tampil sebagai SATU pill, tombolnya nempel di dalam. */
+/* Pill tetap pakai bingkainya sendiri; tombol aksi nempel di sebelahnya
+   tanpa border, biar nggak kebaca jadi tiga kotak berjejer. */
 .skill-item {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.4rem 0.5rem 0.4rem 0.9rem;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    transition: border-color 0.2s ease;
-}
-
-.skill-item:hover { border-color: var(--accent); }
-
-.skill-item .skill-pill {
-    border: 0;
-    padding: 0;
-    background: none;
-}
-
-/* Matiin hover pill bawaan di dalam skill-item, biar hover-nya satu objek */
-.skill-item .skill-pill:hover {
-    background: none;
-    color: var(--ink);
-}
-
-.skill-item__actions {
-    display: inline-flex;
-    gap: 0.1rem;
-    padding-left: 0.3rem;
-    border-left: 1px solid var(--line);
+    gap: 0.15rem;
 }
 
 .skill-action {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.2rem 0.35rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
     border: 0;
     border-radius: var(--radius);
     background: none;
     color: var(--text-muted);
-    font-size: 0.85rem;
-    line-height: 1;
-    text-decoration: none;
     cursor: pointer;
-    transition: color 0.15s ease, background-color 0.15s ease;
+    /* Redup waktu diam, jelas waktu di-hover — biar deretan skill tetap kalem */
+    opacity: 0.45;
+    transition:
+        opacity 0.15s ease,
+        color 0.15s ease,
+        background-color 0.15s ease;
 }
 
+.skill-action svg {
+    width: 0.95rem;
+    height: 0.95rem;
+}
+
+.skill-item:hover .skill-action { opacity: 1; }
+
 .skill-action:hover {
+    opacity: 1;
     color: var(--accent);
     background-color: rgba(217, 93, 57, 0.12);
 }
@@ -890,4 +891,14 @@ h1, .brand {
     background-color: rgba(180, 35, 24, 0.12);
 }
 
-.skill-action-form { display: inline-flex; margin: 0; }
+/* Keyboard tetap kebagian: tombol nggak boleh "ilang" buat yang nge-tab */
+.skill-action:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.skill-action-form {
+    display: inline-flex;
+    margin: 0;
+}
