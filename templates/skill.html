@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block meta %}
+    <title>Skills - {{ name }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon/devicon.min.css">
+{% endblock meta %}
+{% block content %}
+    <main>
+        <section class="experience-section">
+            <div class="container">
+                <p class="section-kicker">What I am capable of</p>
+                <div class="project-header">
+                    <h1>Skills</h1>
+                    <a href="{% url 'main:create_skill' %}" class="button project-add-button">
+                        <span aria-hidden="true">+</span>
+                        Add Skill
+                    </a>
+                </div>
+
+                {% for category in category_list %}
+                    <div class="skill-category" data-category="{{ category.slug }}">
+                        <h3 class="skill-category-title">{{ category.name }}</h3>
+                        <div class="skill-list">
+                            {% for skill in category.skills.all %}
+                                {% include "components/skill_pill.html" with skill=skill %}
+                            {% empty %}
+                                <p class="empty-state">Belum ada skill di kategori ini.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="empty-state">Belum ada skill.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+{% endblock content %}
