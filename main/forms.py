@@ -1,11 +1,30 @@
-from django.forms import ModelForm, TextInput, Textarea, URLInput
+"""ModelForm aplikasi main untuk entitas Project dan Skill.
+
+Tiap form menetapkan `fields` secara eksplisit, bukan `__all__`, supaya kolom
+seperti `id` dan `created_at` yang tidak boleh diisi pengguna tidak ikut
+terekspos hanya karena suatu saat ditambahkan ke model.
+"""
+
 from django.forms import (
-    CharField, CheckboxInput, ModelForm, Select, TextInput,
+    CharField,
+    CheckboxInput,
+    ModelForm,
+    Select,
+    Textarea,
+    TextInput,
+    URLInput,
 )
-from main.models import Project
-from main.models import Skill, SkillCategory
+
+from main.models import Project, Skill, SkillCategory
+
 
 class ProjectForm(ModelForm):
+    """Form tambah/sunting proyek.
+
+    Seluruh field boleh diisi pengguna; `id` tidak disertakan karena UUID-nya
+    dibuat otomatis oleh model dan bersifat `editable=False`.
+    """
+
     class Meta:
         model = Project
         fields = [
@@ -55,12 +74,24 @@ class ProjectForm(ModelForm):
         }
 
 class SkillForm(ModelForm):
+    """Form tambah/sunting skill, sekaligus jalan pintas membuat kategori baru.
+
+    `new_category` bukan field milik model Skill, melainkan field tambahan milik
+    form ini saja. Adanya field itu membuat pengguna bisa memakai kategori yang
+    belum ada tanpa perlu halaman CRUD kategori tersendiri.
+
+    `created_at` sengaja tidak masuk `fields` karena diisi otomatis lewat
+    `auto_now_add`; memasukkannya cuma akan menampilkan kolom yang nilainya
+    selalu ditimpa.
+    """
+
     new_category = CharField(
         required=False,
         label="Atau kategori baru",
         widget=TextInput(attrs={"placeholder": "Machine Learning"}),
         help_text="Isi kalau kategori yang kamu mau belum ada di dropdown.",
     )
+
     class Meta:
         model = Skill
         fields = ["name", "category", "icon", "is_featured"]
@@ -87,11 +118,33 @@ class SkillForm(ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        """Longgarkan field `category` supaya `new_category` bisa jadi gantinya.
+
+        Secara bawaan ForeignKey yang tidak nullable membuat `category` wajib
+        diisi, sehingga form langsung ditolak sebelum `clean()` sempat membaca
+        `new_category`. Di sini `required` dimatikan dan pengecekan "salah satu
+        harus terisi" dipindahkan ke `clean()`.
+        """
         super().__init__(*args, **kwargs)
         self.fields["category"].required = False
         self.fields["category"].empty_label = "— pilih kategori —"
 
     def clean(self):
+        """Pastikan skill punya kategori, dari dropdown maupun ketikan baru.
+
+        Kategori baru dibuat di sini, bukan di `save()`, karena ModelForm
+        menyusun instance dari `cleaned_data` tepat setelah `clean()` selesai —
+        kalau menunggu `save()`, `category` masih kosong saat validasi model
+        berjalan dan form gagal dengan alasan yang membingungkan.
+
+        Pencocokan memakai `name__iexact` agar "machine learning" tidak
+        membuat kategori kedua saat "Machine Learning" sudah ada. Kategori baru
+        ditaruh di urutan paling belakang supaya susunan kategori lama tidak
+        bergeser.
+
+        Konsekuensi yang disadari: kalau field lain gagal validasi setelah blok
+        ini, kategori sudah terlanjur dibuat dan perlu dihapus lewat admin.
+        """
         cleaned = super().clean()
         new_name = (cleaned.get("new_category") or "").strip()
 
