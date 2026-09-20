@@ -16,4 +16,6 @@ urlpatterns = [
     path("projects/<uuid:project_id>/delete/",delete_project,name="delete_project"),
     path("skills/", show_skills, name="show_skills"),
     path("skills/add/", create_skill, name="create_skill"),
+    path("skills/<uuid:skill_id>/edit/", edit_skill, name="edit_skill"),
+    path("skills/<uuid:skill_id>/delete/", delete_skill, name="delete_skill"),
 ]

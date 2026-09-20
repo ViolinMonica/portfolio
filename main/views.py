@@ -105,3 +105,24 @@ def create_skill(request):
         return redirect("main:show_skills")
 
     return render(request, "skills_form.html", {"form": form})
+
+def edit_skill(request, skill_id):
+    skill = get_object_or_404(Skill, pk=skill_id)
+    form = SkillForm(request.POST or None, instance=skill)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Skill berhasil diperbarui!")
+        return redirect("main:show_skills")
+
+    return render(request, "skills_form.html", {"form": form, "skill": skill})
+
+
+def delete_skill(request, skill_id):
+    skill = get_object_or_404(Skill, pk=skill_id)
+
+    if request.method == "POST":
+        skill.delete()
+        messages.success(request, "Skill berhasil dihapus!")
+
+    return redirect("main:show_skills")
