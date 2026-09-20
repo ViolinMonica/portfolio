@@ -4,8 +4,6 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from main.forms import ProjectForm, SkillForm
 from main.models import Experience, Project, Skill, SkillCategory
-from main.forms import ProjectForm
-from main.models import Experience, Project
 
 
 def show_main(request):
@@ -44,7 +42,6 @@ def create_project(request):
         return redirect("main:show_projects")
 
     context = {
-        "name": "Violin Monica",
         "form": form,
     }
     return render(request, "projects_form.html", context)
@@ -72,7 +69,6 @@ def show_projects(request):
     title_query = request.GET.get("title", "").strip()
 
     context = {
-        "name": "Violin Monica",
         "project_list": projects,
         "title_query": title_query,
     }
