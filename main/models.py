@@ -62,13 +62,21 @@ class Skill(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
-    icon = models.CharField(max_length=100, blank=True)
+    icon = models.CharField(max_length=200, blank=True)
     proficiency = models.PositiveSmallIntegerField(default=3)
     is_featured = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['category__order', '-proficiency', 'name']
+        ordering = ['category__order', 'created_at']
 
+    @property
+    def icon_kind(self):
+        if self.icon.startswith("devicon-"):
+            return "devicon"
+        if self.icon.startswith("http"):
+            return "image"
+        return "emoji" if self.icon else ""
+    
     def __str__(self):
         return self.name
