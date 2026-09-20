@@ -268,6 +268,8 @@ Keterbatasan AI: AI tidak tahu bagian mana dari kode saya yang asli buatan sendi
 Log chat AI: https://claude.ai/share/705f637e-bd3a-49ee-9412-0a979b428e72
 
 ### Tugas 2
+Saya memakai Claude (Anthropic) lewat claude.ai sebagai asisten belajar selama Tugas 2. Strategi prompting yang saya pakai: menempelkan instruksi dan checklist tugas ke prompt supaya sarannya tidak melenceng, meminta penjelasan alur request dari `urls.py` sampai template dulu sebelum minta kode, lalu menyusun kodenya sendiri dan minta AI me-review hasilnya. Untuk `tests.py` saya tidak langsung pakai draf AI, melainkan saya cocokkan dulu dengan checklist dan minta revisi untuk kasus yang belum tercover.
+
 Bagian yang dibantu AI:
 
 - Pembuatan draf jawaban ketiga pertanyaan reflektif berdasarkan rubrik dan instruksi Tugas 2
@@ -288,6 +290,8 @@ Keterbatasan AI: draf test dari AI awalnya tidak sesuai instruksi, sehingga saya
 Log chat AI: https://claude.ai/share/2ab69e56-a51f-4707-b00c-f920fd841191, hhttps://claude.ai/share/9d5bfe8b-266d-4db3-b64c-e9e756f1ddf7
 
 ### Tugas 3
+Saya memakai Claude (Anthropic) lewat Claude Code di terminal sebagai asisten selama Tugas 3. Strategi prompting yang saya pakai: menyuruh AI membaca kode yang sudah ada dulu sebelum menyarankan apa pun, meminta satu perubahan kecil per prompt supaya gampang saya review, dan menanyakan alasan di balik tiap saran desain model (misalnya kenapa `on_delete=PROTECT` dan bukan `CASCADE`) sebelum kodenya saya pakai. Tiap keluaran AI tetap saya baca ulang dan cocokkan dengan checklist tugas, dan yang tidak cocok saya revert atau perbaiki manual seperti tercatat di bagian keterbatasan di bawah.
+
 Bagian yang dibantu AI:
 
 - Review kecocokan kode terhadap checklist tugas, termasuk memeriksa ulang bahwa seluruh berkas HTML sudah extend dari `base.html`
