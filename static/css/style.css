@@ -131,6 +131,20 @@ h1, .brand {
     margin-bottom: 3rem;
 }
 
+/* Header harus melebar penuh nutupin semua kolom grid, bukan nyempit
+   jadi selebar satu .skill-category. (komentar di baris 333 minta ini) */
+.section-header {
+    grid-column: 1 / -1;
+}
+
+/* skill.html pakai <h1> karena itu judul halaman, index.html pakai <h2>
+   karena cuma judul section — dua-duanya dapet ukuran yang sama */
+.section-header h1 {
+    font-family: "Space Grotesk", -apple-system, sans-serif;
+    font-size: clamp(2.2rem, 5vw, 3.5rem);
+    line-height: 0.95;
+}
+
 .section-header h2 {
     font-family: "Space Grotesk", -apple-system, sans-serif;
     /* clamp(min, ideal, max): ukuran font otomatis menyesuaikan lebar layar,
@@ -761,4 +775,130 @@ h1, .brand {
         width: 100%;
         text-align: center;
     }
+}
+
+/* ---------- FORM: dropdown, angka, checkbox ---------- */
+
+/* select nggak ikut ke-style di blok .form-group input/textarea di atas.
+   appearance:none matiin gaya bawaan OS, panahnya digambar ulang pakai SVG
+   supaya warnanya nurut --accent di semua browser. */
+.form-group select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.7rem 2.2rem 0.7rem 0.7rem;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    font: inherit;
+    color: var(--ink);
+    background-color: var(--paper);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23d95d39' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 0.7rem;
+    cursor: pointer;
+    transition: border-color 0.2s ease, outline-color 0.2s ease;
+}
+
+.form-group select:focus {
+    outline: 2px solid var(--accent);
+    border-color: var(--accent);
+}
+
+/* Checkbox jangan ikut width:100% kayak input lain */
+.form-group input[type="checkbox"] {
+    width: auto;
+    height: 1.1rem;
+    accent-color: var(--accent);
+}
+
+.form-help {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 0.35rem;
+}
+
+.form-message {
+    margin: 1rem 0 0;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    font-weight: 600;
+}
+
+.form-message.success { border-color: #2e7d32; color: #2e7d32; }
+.form-message.error   { border-color: #b42318; color: #b42318; }
+
+/* ---------- SKILL: unggulan ---------- */
+
+/* Skill unggulan dikasih aksen biar kebedain dari yang lain */
+.skill-pill--featured {
+    border-color: var(--accent);
+    background-color: rgba(217, 93, 57, 0.08);
+}
+
+.skill-pill--featured::before {
+    content: "★";
+    color: var(--accent);
+    font-size: 0.8rem;
+}
+
+/* ---------- SKILL: item yang bisa dikelola ---------- */
+
+/* Pill tetap pakai bingkainya sendiri; tombol aksi nempel di sebelahnya
+   tanpa border, biar nggak kebaca jadi tiga kotak berjejer. */
+.skill-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+}
+
+.skill-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius);
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    /* Redup waktu diam, jelas waktu di-hover — biar deretan skill tetap kalem */
+    opacity: 0.45;
+    transition:
+        opacity 0.15s ease,
+        color 0.15s ease,
+        background-color 0.15s ease;
+}
+
+.skill-action svg {
+    width: 0.95rem;
+    height: 0.95rem;
+}
+
+.skill-item:hover .skill-action { opacity: 1; }
+
+.skill-action:hover {
+    opacity: 1;
+    color: var(--accent);
+    background-color: rgba(217, 93, 57, 0.12);
+}
+
+.skill-action--danger:hover {
+    color: #b42318;
+    background-color: rgba(180, 35, 24, 0.12);
+}
+
+/* Keyboard tetap kebagian: tombol nggak boleh "ilang" buat yang nge-tab */
+.skill-action:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.skill-action-form {
+    display: inline-flex;
+    margin: 0;
 }

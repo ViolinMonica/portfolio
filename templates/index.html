@@ -1,234 +1,56 @@
 {% extends 'base.html' %}
 {% block meta %}
-    <title>{{ name }} - Portofolio</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon/devicon.min.css">
+<title>{{ name }} - Portofolio</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/devicons/devicon/devicon.min.css">
 {% endblock meta %}
 {% block content %}
-    <main>
-        <!-- ============================================
-        HERO SECTION — identitas & profil singkat
-        ============================================ -->
-        <section class="hero" id="profile">
-            <div class="container hero-grid">
-
-                <!-- Kolom kiri-atas: label kecil + nama -->
-                <div class="hero-identity">
-                    <p class="hero-kicker">Computer Science &middot; Universitas Indonesia</p>
-                    <h1>{{ name }}</h1>
-                </div>
-
-                <!-- Kolom kanan: foto dengan efek kartu bertumpuk (lihat .photo-block di CSS) -->
-                <div class="hero-photo">
-                    <div class="photo-block"></div>
-                    <img class="avatar" src="/static/img/profile.jpg" alt="Photo of {{ name }}">
-                </div>
-
-                <!-- Kolom kiri-bawah: bio, data diri (NPM/Program), dan link sosial -->
-                <div class="hero-details">
-                    <p class="bio">{{ bio }}</p>
-                    <!-- <dl> (description list) dipakai karena datanya sepasang label-isi (key-value) -->
-                        <dl class="meta-list">
-                            <div class="meta-row">
-                                <dt>NPM</dt>
-                                <dd>{{ npm }}</dd>
-                            </div>
-                            <div class="meta-row">
-                                <dt>Program</dt>
-                                <dd>{{ study_program }}</dd>
-                            </div>
-                        </dl>
-
-                        <!-- Link sosial. Icon devicon SENGAJA tanpa class "colored",
-                        biar warnanya ngikut warna teks (putih) alih-alih warna resmi brand -->
-                        <div class="social-links">
-                            <a href="https://github.com/ViolinMonica" class="social-link"><i class="devicon-github-plain"></i>GitHub</a>
-                            <a href="https://linkedin.com/in/violin-monica" class="social-link"><i class="devicon-linkedin-plain"></i>LinkedIn</a>
-                            <!-- Icon Gmail pakai <img> (bukan font icon), warnanya diatur lewat
-                            parameter di URL simpleicons.org (/faf6ee = warna --paper) -->
-                            <a href="mailto:violin.monica@ui.ac.id" class="social-link"><img src="https://cdn.simpleicons.org/gmail/faf6ee" alt="logo gmail">Email</a>
-                        </div>
-                    </div>
-
+<main>
+    <!-- ============================================
+    HERO SECTION — identitas & profil singkat
+    ============================================ -->
+    <section class="hero" id="profile">
+        <div class="container hero-grid">
+            
+            <!-- Kolom kiri-atas: label kecil + nama -->
+            <div class="hero-identity">
+                <p class="hero-kicker">Computer Science &middot; Universitas Indonesia</p>
+                <h1>{{ name }}</h1>
             </div>
-        </section>
-
-        <!-- ============================================
-        SKILLS SECTION — daftar kemampuan per kategori
-        ============================================ -->
-        <section class="skills" id="skills">
-            <div class="container">
-
-                <div class="section-header">
-                    <p class="hero-kicker">What I am Capable Of</p>
-                    <h2>Skills</h2>
-
-                    <!-- Dropdown filter kategori skill.
-                    value tiap <option> HARUS sama persis dengan data-category
-                        di elemen .skill-category di bawah, karena dicocokkan oleh script.js -->
-                        <select id="skill-filter">
-                            <option value="all">All</option>
-                            <option value="languages">Languages</option>
-                            <option value="programming">Programming Languages</option>
-                            <option value="fullstack">Fullstack</option>
-                            <option value="database">Database</option>
-                            <option value="cybersecurity">Cybersecurity</option>
-                            <option value="tools">Tools</option>
-                            <option value="robotic">Robotic</option>
-                            <option value="design">Beside the Keyboard</option>
-                        </select>
-                </div>
-
-                <!-- Tiap .skill-category punya atribut data-category sebagai "penanda"
-                yang dibaca script.js buat nentuin card mana yang ditampilkan/disembunyikan -->
-
-                <div class="skill-category" data-category="languages">
-                    <h3 class="skill-category-title">Languages</h3>
-                    <div class="skill-list">
-                        <span class="skill-pill">
-                            <span class="flag">🇮🇩</span>
-                            Bahasa Indonesia (Native proficiency)
-                        </span>
-                        <span class="skill-pill">
-                            <span class="flag">🇬🇧</span>
-                            English (Professional proficiency)
-                        </span>
-                        <span class="skill-pill">
-                            <span class="flag">🇨🇳</span>
-                            Mandarin (Basic proficiency)
-                        </span>
-                    </div>
-                </div>
-
-                <div class="skill-category" data-category="programming">
-                    <h3 class="skill-category-title">Programming languages</h3>
-                    <div class="skill-list">
-                        <span class="skill-pill">
-                            <i class="devicon-python-plain colored"></i> Python
-                        </span>
-                        <span class="skill-pill">
-                            <i class="devicon-java-plain colored"></i> Java
-                        </span>
-                        <span class="skill-pill">
-                            <i class="devicon-cplusplus-plain colored"></i> C++
-                        </span>
-                        <span class="skill-pill">
-                            <i class="devicon-azuresqldatabase-plain colored"></i> SQL
-                        </span>
-                    </div>
-                </div>
-
-                <div class="skill-category" data-category="fullstack">
-                    <h3 class="skill-category-title">Fullstack</h3>
-                    <div class="skill-list">
-                        <span class="skill-pill">
-                            <i class="devicon-django-plain colored"></i>Django
-                        </span>
-                        <span class="skill-pill">
-                            <i class="devicon-nextjs-plain colored"></i>Next.js
-                        </span>
-                        <span class="skill-pill">REST API</span>
-                        <span class="skill-pill">
-                            <i class="devicon-html5-plain colored"></i>HTML
-                        </span>
-                        <span class="skill-pill">
-                            <i class="devicon-css3-plain colored"></i>CSS
-                        </span>
-                        <span class="skill-pill">
-                            <i class="devicon-postman-plain colored"></i>Postman
-                        </span>
-                        <span class="skill-pill">
-                            <i class="devicon-react-plain colored"></i>React
-                        </span>
-                    </div>
-                </div>
-
-                <div class="skill-category" data-category="database">
-                    <h3 class="skill-category-title">Database</h3>
-                    <div class="skill-list">
-                        <span class="skill-pill">
-                            <i class="devicon-postgresql-plain colored"></i>PostgreSQL
-                        </span>
-                        <span class="skill-pill">
-                            <i class="devicon-sqlite-plain colored"></i>SQLite
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Icon di kategori ini pakai <img> dari CDN eksternal (bukan devicon),
-                karena Burp Suite/Wireshark/Nmap/Ghidra nggak tersedia di devicon -->
-                <div class="skill-category" data-category="cybersecurity">
-                    <h3 class="skill-category-title">Cybersecurity</h3>
-                    <div class="skill-list">
-                        <span class="skill-pill">
-                            <img class="tool-icon" src="https://cdn.simpleicons.org/burpsuite" alt="logo burp suite">
-                            Burp Suite
-                        </span>
-                        <span class="skill-pill">
-                            <img class="tool-icon" src="https://cdn.simpleicons.org/wireshark" alt="logo wireshark">
-                            Wireshark
-                        </span>
-                        <span class="skill-pill">
-                            <img class="tool-icon" src="https://nmap.org/images/sitelogo-2x.png" alt="logo nmap">
-                            Nmap
-                        </span>
-                        <span class="skill-pill">
-                            <img class="tool-icon" src="https://media.defense.gov/2023/Mar/06/2003173005/-1/-1/0/230306-D-IM742-4444.PNG" alt="logo ghidra">
-                            Ghidra
-                        </span>
-                    </div>
-                </div>
-
-                <div class="skill-category" data-category="tools">
-                    <h3 class="skill-category-title">Tools</h3>
-                    <div class="skill-list">
-                        <span class="skill-pill">
-                            <i class="devicon-git-plain colored"></i>Git
-                        </span>
-                        <span class="skill-pill">
-                            <i class="devicon-github-plain colored"></i>Github
-                        </span>
-                        <span class="skill-pill">
-                            <i class="devicon-linux-plain colored"></i>Linux
-                        </span>
-                        <span class="skill-pill">
-                            <i class="devicon-docker-plain colored"></i>Docker
-                        </span>
-                        <span class="skill-pill">
-                            <i class="devicon-vscode-plain colored"></i>Visual Studio Code
-                        </span>
-                    </div>
-                </div>
-
-                <!-- ROS pakai varian "-original" (bukan "-plain") karena devicon
-                cuma nyediain versi itu buat ROS -->
-                <div class="skill-category" data-category="robotic">
-                    <h3 class="skill-category-title">Robotic</h3>
-                    <div class="skill-list">
-                        <span class="skill-pill">
-                            <i class="devicon-ros-original colored"></i>
-                            Robot Operating System (ROS)
-                        </span>
-                        <span class="skill-pill">
-                            <i class="devicon-arduino-plain colored"></i>
-                            Arduino
-                        </span>
-                    </div>
-                </div>
-
-                <div class="skill-category" data-category="design">
-                    <h3 class="skill-category-title">Beside the Keyboard</h3>
-                    <div class="skill-list">
-                        <span class="skill-pill">UI/UX</span>
-                        <span class="skill-pill">
-                            <i class="devicon-figma-plain colored"></i>Figma
-                        </span>
-                        <span class="skill-pill">Graphic Design</span>
-                        <span class="skill-pill">Painting</span>
-                    </div>
-                </div>
-
+            
+            <!-- Kolom kanan: foto dengan efek kartu bertumpuk (lihat .photo-block di CSS) -->
+            <div class="hero-photo">
+                <div class="photo-block"></div>
+                <img class="avatar" src="/static/img/profile.jpg" alt="Photo of {{ name }}">
             </div>
-        </section>
-    </main>
-    <script src="/static/js/script.js"></script>
+            
+            <!-- Kolom kiri-bawah: bio, data diri (NPM/Program), dan link sosial -->
+            <div class="hero-details">
+                <p class="bio">{{ bio }}</p>
+                <!-- <dl> (description list) dipakai karena datanya sepasang label-isi (key-value) -->
+                <dl class="meta-list">
+                    <div class="meta-row">
+                        <dt>NPM</dt>
+                        <dd>{{ npm }}</dd>
+                    </div>
+                    <div class="meta-row">
+                        <dt>Program</dt>
+                        <dd>{{ study_program }}</dd>
+                    </div>
+                </dl>
+                
+                <!-- Link sosial. Icon devicon SENGAJA tanpa class "colored",
+                biar warnanya ngikut warna teks (putih) alih-alih warna resmi brand -->
+                <div class="social-links">
+                    <a href="https://github.com/ViolinMonica" class="social-link"><i class="devicon-github-plain"></i>GitHub</a>
+                    <a href="https://linkedin.com/in/violin-monica" class="social-link"><i class="devicon-linkedin-plain"></i>LinkedIn</a>
+                    <!-- Icon Gmail pakai <img> (bukan font icon), warnanya diatur lewat
+                    parameter di URL simpleicons.org (/faf6ee = warna --paper) -->
+                    <a href="mailto:violin.monica@ui.ac.id" class="social-link"><img src="https://cdn.simpleicons.org/gmail/faf6ee" alt="logo gmail">Email</a>
+                </div>
+            </div>
+                
+        </div>
+    </section>
+</main>
 {% endblock content %}
+        

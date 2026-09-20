@@ -133,6 +133,15 @@ Live di: https://violin-monica-portofolio.pws.cs.ui.ac.id
 Menambahkan unit test yang mencakup akses URL + template, data muncul di HTML, dan pesan kondisi kosong.
 6. Pengembangan di luar instruksi: mengelompokkan experience menjadi ongoing/past di view, dan membuat context processor untuk memusatkan data profil.
 
+- Minggu 3: Form, ModelForm, dan Data Delivery
+1. Menambahkan model `Skill` dan `SkillCategory` pada aplikasi main. Kategori dibuat sebagai model tersendiri, bukan `choices`, supaya pengguna bisa menambah kategori baru tanpa perlu migrasi lagi.
+2. Memindahkan sekitar 30 skill yang tadinya hardcoded di `index.html` ke database lewat data migration. Tampilannya tetap sama persis, tapi sumber datanya sudah dinamis.
+3. Membuat `SkillForm` (ModelForm) dengan empat field bertipe beda-beda (`CharField`, `ForeignKey`, `CharField`, `BooleanField`), plus field non-model `new_category` untuk membuat kategori langsung dari form.
+4. Membuat view `create_skill`, `edit_skill`, `delete_skill`, dan `get_skills_json`, beserta halaman form create/update dan tombol delete.
+5. Menampilkan data skill lewat deserialisasi JSON (`_categories_with_skills`), bukan query model langsung, supaya halaman HTML dan endpoint JSON pasti memakai sumber data yang sama.
+6. Refactor `index.html`: sekitar 227 baris markup skill hardcoded diganti perulangan dari database, dan markup pill dipindah ke partial `components/skill_pill.html`.
+7. Pengembangan di luar instruksi: auto-slug kategori dengan penanganan tabrakan nama, `on_delete=PROTECT`, filter kategori yang opsinya dirender dari database, flag `is_featured` dengan penanda visual, tombol aksi SVG dengan state `:hover` dan `:focus-visible`, serta perbaikan `django.contrib.messages` yang sebelumnya tidak pernah dirender di template mana pun.
+
 ## Pertanyaan Reflektif
 ### Tugas 1
 
@@ -182,6 +191,65 @@ Setelah menyimpan perubahan itu, saya harus menjalankan kedua perintah:
 
 Tanpa `makemigrations`, perubahan model tidak tercatat sebagai migrasi. Tanpa `migrate`, database tetap memakai skema lama dan aplikasi bisa error karena model dan tabel tidak sinkron.
 
+### Tugas 3
+
+1. Mengapa memakai ModelForm dan mengapa `{% csrf_token %}` wajib ada
+Alasan utamanya untuk menghindari duplikasi definisi field. Model `Skill` saya sudah mendeklarasikan `name` (maksimal 100 karakter), `category` (ForeignKey), `icon`, dan `is_featured`. Kalau form-nya saya tulis manual di HTML, definisi yang sama harus ditulis ulang minimal di tiga tempat: tag `<input>` di template, kode pembacaan `request.POST` di view, dan kode validasi panjang serta tipe datanya. Menambah satu field berarti mengedit tiga tempat, dan kalau ada yang kelewat, bug-nya baru ketahuan setelah data terlanjur masuk.
+
+Dengan `ModelForm`, saya cukup menulis `model = Skill` dan `fields = ["name", "category", "icon", "is_featured"]`. Sisanya diturunkan Django sendiri:
+
+- Widget otomatis -> `is_featured` yang bertipe `BooleanField` dirender jadi checkbox, dan `category` yang bertipe ForeignKey dirender jadi `<select>` berisi seluruh baris `SkillCategory`. Kalau manual, daftar opsi itu harus saya query dan susun sendiri.
+- Validasi sisi server otomatis -> `max_length=100` pada `name` ditegakkan tanpa perlu saya tulis ulang. Untuk `category`, Django juga memastikan UUID yang dikirim memang ada di tabel kategori. Validasi ini penting karena atribut `maxlength` di HTML cuma menahan di browser dan gampang dilewati.
+- Penyimpanan otomatis -> `form.save()` memetakan `cleaned_data` ke instance model. View saya jadi ringkas, dan yang lebih penting, `edit_skill` bisa memakai form yang sama persis cukup dengan menambahkan `instance=skill`. Satu kelas form melayani create sekaligus update.
+- Field sensitif tetap terkendali -> saya menulis `fields` secara eksplisit, bukan `__all__`, jadi `id` dan `created_at` tidak ikut terekspos ke pengguna.
+
+ModelForm juga tidak mengunci saya pada struktur model. Di `SkillForm` saya menambahkan `new_category`, field yang tidak ada di model Skill, lalu meng-override `clean()` supaya `SkillCategory` baru dibuat kalau field itu diisi. Jadi saya tetap dapat semua otomatisasi di atas sambil menambahkan perilaku khusus sendiri.
+
+Mengapa `{% csrf_token %}` wajib
+
+CSRF (Cross-Site Request Forgery) adalah serangan di mana situs lain membuat browser korban mengirim request ke aplikasi kita tanpa sepengetahuan korban. Masalahnya, browser otomatis melampirkan cookie sesi ke setiap request menuju domain tersebut, jadi dari sisi server request palsu itu kelihatan seperti datang dari pengguna yang sah.
+
+Di proyek saya, view yang paling rawan adalah `delete_skill` dan `delete_project`. Keduanya menerima POST ke URL seperti `/skills/<uuid>/delete/`. Tanpa proteksi, halaman jahat bisa memasang form tersembunyi yang otomatis ter-submit ke URL itu dan menghapus data saya.
+
+`{% csrf_token %}` merender `<input type="hidden" name="csrfmiddlewaretoken" value="...">`. `CsrfViewMiddleware` lalu membandingkan nilai itu dengan token pada cookie pengguna, dan menolak request kalau tidak cocok. Situs penyerang tidak bisa membaca nilai token tersebut karena terhalang same-origin policy browser, jadi dia tidak bisa menyusun request palsu yang lolos. Kalau tag ini lupa dipasang, Django membalas `403 Forbidden`, bukan diam-diam menerima.
+
+Sebagai lapisan tambahan, view delete saya sengaja cuma mengeksekusi penghapusan kalau `request.method == "POST"`. Request GET hanya diarahkan balik tanpa efek apa pun. Alasannya, URL yang bisa dipicu lewat GET gampang tereksekusi tanpa sengaja oleh prefetch browser, crawler, atau sekadar link yang tertempel di suatu tempat.
+
+2. Mengapa JSON lebih disukai dibanding XML
+- Pemetaan langsung ke struktur data bawaan -> objek JSON jadi `dict` di Python dan object di JavaScript, array jadi `list`. XML menghasilkan pohon node yang harus ditelusuri manual, dan seluruh isinya berupa string sehingga angka maupun boolean perlu dikonversi sendiri. Pada respons `/api/skills/` saya, `"is_featured": false` langsung terbaca sebagai boolean. Di XML nilainya akan jadi teks `"False"` yang masih harus diterjemahkan.
+- Parsing sudah tersedia tanpa tambahan apa pun -> di sisi klien cukup `response.json()`, di sisi Python cukup `json.loads()`. Untuk XML masih perlu `DOMParser` atau pustaka tersendiri plus kode penelusuran node.
+- Ukuran lebih kecil -> XML mengulang nama setiap field dua kali, di tag pembuka dan penutup. Untuk data yang dikirim berulang kali lewat jaringan, selisihnya terasa.
+- Cocok dengan cara kerja web modern -> API dan komunikasi antar-service umumnya berbicara dalam JSON, jadi memilih JSON berarti ikut ekosistem yang sudah jadi standar.
+
+Meski begitu, XML tidak lantas usang. XML unggul kalau dokumen butuh validasi skema ketat (XSD), namespace, atribut di samping isi elemen, atau dokumen dengan teks campuran seperti format `.docx`. Untuk kebutuhan proyek ini, yaitu mengirim daftar objek sederhana dari server ke halaman web, JSON jelas lebih tepat. Django sendiri menyediakan keduanya lewat `serializers.serialize("json", ...)` maupun `("xml", ...)`, dan saya memilih JSON karena alasan-alasan di atas.
+
+3. Alur view mengembalikan data JSON dan mengapa perlu serialization
+Alur yang terjadi saat `/api/skills/` diakses
+
+(a) `portfolio_config/urls.py` menerima request, mencocokkan prefix, lalu meneruskannya ke `main/urls.py` lewat `include()`.
+
+(b) `main/urls.py` mencocokkan path dengan `path("api/skills/", get_skills_json, name="get_skills_json")` dan memanggil view tersebut.
+
+(c) `get_skills_json` menjalankan `Skill.objects.all()`. Django ORM menerjemahkannya jadi query SQL, mengambil baris dari tabel, lalu membungkus tiap baris jadi objek `Skill` di memori Python. Urutannya mengikuti `Skill.Meta.ordering`.
+
+(d) `serializers.serialize("json", ...)` mengubah objek-objek Python tadi jadi satu string JSON berformat `"model"`, `"pk"`, dan `"fields"`.
+
+(e) String itu dibungkus `HttpResponse(..., content_type="application/json")`. Header `content_type` inilah yang memberi tahu penerima bahwa isi respons harus diperlakukan sebagai JSON, bukan HTML.
+
+Untuk halaman HTML-nya, alurnya berlanjut satu tahap lagi. `_categories_with_skills` memanggil `get_skills_json` di dalam proses yang sama, lalu `serializers.deserialize` mengubah string JSON itu balik jadi instance `Skill` (diakses lewat atribut `.object` tiap wrapper), baru dikelompokkan per kategori dan dikirim ke template. Karena itu halaman dan endpoint dijamin menampilkan data yang sama.
+
+Mengapa perlu serialization
+
+Objek `Skill` adalah objek Python yang hidup di memori: punya method, punya atribut internal seperti `_state`, dan punya descriptor untuk relasi. HTTP cuma bisa mengangkut teks atau byte, jadi objek semacam itu mustahil dikirim apa adanya. Serialization adalah proses menerjemahkannya jadi representasi tekstual yang bisa melintasi jaringan.
+
+Memanggil `json.dumps()` langsung pada objek model pun akan gagal, karena objek model bukan tipe yang dikenali JSON. Selain itu ada beberapa tipe field yang memang tidak punya padanan di JSON, dan serializer Django yang menanganinya. Ini kelihatan jelas pada respons saya:
+
+- `pk` berupa UUID diubah jadi string `"c8a2a9a0-ffd5-4fd0-a387-f5a38bde13fb"`, karena JSON tidak mengenal tipe UUID.
+- `created_at` berupa `datetime` diubah jadi string ISO 8601 `"2026-09-20T09:05:12.898Z"`.
+- `category` yang merupakan ForeignKey diubah jadi UUID kategori terkait, bukan objek kategori yang tersarang. Karena itulah `_categories_with_skills` mengelompokkan datanya memakai `skill.category_id`, bukan `skill.category`.
+
+Alasan terakhir soal kontrak antar sistem. Hasil serialization tidak terikat pada Python, jadi penerimanya bisa JavaScript di browser, aplikasi mobile, atau layanan lain dalam bahasa apa pun. Format objek Python cuma bisa dimengerti Python, sedangkan JSON bisa dimengerti semuanya.
+
 ## AI Disclosure
 ### Tugas 1
 Saya menggunakan Claude (Anthropic) sebagai asisten belajar selama mengerjakan Tugas 1, dengan strategi utama yaitu meminta penjelasan konsep dan hint/referensi terlebih dahulu untuk kemudian dicoba dikulik dan diketik kodenya sendiri.  
@@ -200,6 +268,8 @@ Keterbatasan AI: AI tidak tahu bagian mana dari kode saya yang asli buatan sendi
 Log chat AI: https://claude.ai/share/705f637e-bd3a-49ee-9412-0a979b428e72
 
 ### Tugas 2
+Saya memakai Claude (Anthropic) lewat claude.ai sebagai asisten belajar selama Tugas 2. Strategi prompting yang saya pakai: menempelkan instruksi dan checklist tugas ke prompt supaya sarannya tidak melenceng, meminta penjelasan alur request dari `urls.py` sampai template dulu sebelum minta kode, lalu menyusun kodenya sendiri dan minta AI me-review hasilnya. Untuk `tests.py` saya tidak langsung pakai draf AI, melainkan saya cocokkan dulu dengan checklist dan minta revisi untuk kasus yang belum tercover.
+
 Bagian yang dibantu AI:
 
 - Pembuatan draf jawaban ketiga pertanyaan reflektif berdasarkan rubrik dan instruksi Tugas 2
@@ -218,3 +288,32 @@ Bagian yang dibantu AI:
 Keterbatasan AI: draf test dari AI awalnya tidak sesuai instruksi, sehingga saya cocokkan manual dengan checklist tugas, cari kasus yang belum tercover, lalu minta untuk kembali direvisi dan diverifikasi.
 
 Log chat AI: https://claude.ai/share/2ab69e56-a51f-4707-b00c-f920fd841191, hhttps://claude.ai/share/9d5bfe8b-266d-4db3-b64c-e9e756f1ddf7
+
+### Tugas 3
+Saya memakai Claude (Anthropic) lewat Claude Code di terminal sebagai asisten selama Tugas 3. Strategi prompting yang saya pakai: menyuruh AI membaca kode yang sudah ada dulu sebelum menyarankan apa pun, meminta satu perubahan kecil per prompt supaya gampang saya review, dan menanyakan alasan di balik tiap saran desain model (misalnya kenapa `on_delete=PROTECT` dan bukan `CASCADE`) sebelum kodenya saya pakai. Tiap keluaran AI tetap saya baca ulang dan cocokkan dengan checklist tugas, dan yang tidak cocok saya revert atau perbaiki manual seperti tercatat di bagian keterbatasan di bawah.
+
+Bagian yang dibantu AI:
+
+- Review kecocokan kode terhadap checklist tugas, termasuk memeriksa ulang bahwa seluruh berkas HTML sudah extend dari `base.html`
+- Perancangan model `Skill` dan `SkillCategory`, termasuk saran `on_delete=PROTECT` dan auto-slug dengan penanganan tabrakan nama
+- Penyusunan data migration untuk memindahkan sekitar 30 skill hardcoded dari `index.html` ke database
+- Penyusunan `SkillForm`, termasuk pola field non-model `new_category` untuk membuat kategori langsung dari form
+- Penyusunan view `create_skill`, `edit_skill`, `delete_skill`, `get_skills_json`, dan helper `_categories_with_skills`
+- Styling CSS untuk `<select>`, checkbox, pesan `messages`, serta tombol aksi SVG
+- Penyusunan docstring pada `models.py` dan `forms.py`
+- Pembuatan draf jawaban ketiga pertanyaan reflektif
+- Penyusunan commit message dan struktur README ini
+- Debugging
+
+Keterbatasan AI dan perbaikan manual yang saya lakukan:
+
+- AI mengerjakan yang tidak diminta. Waktu saya cuma minta pemeriksaan checklist, AI malah langsung menambahkan view update beserta URL dan template-nya. Saya minta perubahan itu di-revert dan mengambil kembali kontrol soal kapan kode ditulis.
+- AI tidak membedakan kode tutorial dan kode buatan sendiri. AI awalnya menyimpulkan checklist sudah terpenuhi karena mencocokkannya dengan `ProjectForm`, padahal `Project` berasal dari tutorial. Saya yang mengoreksi bahwa "bagian yang dipilih" seharusnya bagian buatan saya sendiri, dan dari situ arah pengerjaan berpindah ke Skills.
+- Perancangan awal AI belum memeriksa data asli. AI memperkirakan icon cuma ada dua bentuk (devicon dan emoji), padahal setelah markup asli dibaca ternyata ada empat (tambahan `<img>` dari CDN eksternal dan skill tanpa icon). `Meta.ordering` yang disarankan AI juga memakai `-proficiency`, yang membuat urutan pill berubah dari susunan asli, jadi saya ganti ke `created_at`.
+- AI menambahkan field yang tidak terpakai. Field `proficiency` dan `is_featured` ditambahkan cuma demi memenuhi syarat "tipe data bervariasi", tapi tidak pernah dirender di view mana pun. Saya menemukannya waktu review, lalu minta `proficiency` dihapus dan `is_featured` diberi penanda visual supaya benar-benar berfungsi.
+- Import ganda tertinggal, dua kali. Waktu menambahkan view dan form baru, AI menulis baris import baru tanpa memeriksa yang sudah ada, sehingga `views.py` sempat gagal dijalankan dan `forms.py` punya import kembar. Saya menemukannya waktu audit kualitas kode.
+- Instruksi AI beberapa kali ambigu sampai merusak template. Potongan kode yang diberikan tidak menyebut batas baris yang harus diganti, sehingga `skill.html` sempat punya tag `{% for %}` ganda dan `skills_form.html` sempat menaruh `<h1>` serta tombol submit di dalam `{% block meta %}`. Akibatnya tombol tampil menempel di pojok kiri atas halaman.
+- Docstring buatan AI memuat klaim yang tidak benar. Docstring `SkillForm.clean()` menyebut kategori yatim bisa dihapus lewat admin, padahal `Skill` dan `SkillCategory` belum didaftarkan di `admin.py`. Saya mendaftarkannya supaya klaim itu jadi benar.
+- Masalah environment yang saya diagnosa sendiri. Folder proyek berada di dalam OneDrive, dan itu dua kali merusak isi repositori: object git hilang sehingga `git commit` gagal dengan `invalid object`, dan dua berkas gambar di `static/img/` terhapus sendiri. Saya memulihkannya lewat `git hash-object -w`, `git fetch --refetch`, dan `git restore`.
+
+Log chat AI: https://drive.google.com/file/d/1m4IWbC-5gKajS-YXYvwKnYW784G-qY-j/view?usp=sharing 
