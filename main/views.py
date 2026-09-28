@@ -14,6 +14,13 @@ from main.models import Experience, Project, Skill, SkillCategory
 
 
 def show_main(request):
+    """Tampilkan halaman profil beserta waktu login terakhir dari cookie.
+
+    `last_login` sengaja dibaca dari cookie, bukan dari `request.user`, supaya
+    nilainya tetap ada meski pengguna sudah logout — cookie-nya baru dihapus
+    di `logout_user`. Nilai default dipakai kalau cookie belum pernah dipasang,
+    agar template tidak perlu menangani kasus kosong sendiri.
+    """
     last_login = request.COOKIES.get('last_login', 'No login session yet / Cookie not found')
     context = {
         "name": "Violin Monica",
@@ -260,6 +267,14 @@ def delete_skill(request, skill_id):
     return redirect("main:show_skills")
 
 def register(request):
+    """Buat akun baru lewat `UserCreationForm` bawaan Django.
+
+    Memakai form bawaan, bukan menulis sendiri, karena form itu sudah membawa
+    validasi password Django (panjang minimum, tidak terlalu umum, tidak mirip
+    username) dan hashing lewat `set_password`. Setelah sukses pengguna
+    diarahkan ke halaman login, bukan langsung di-login, supaya akun yang baru
+    dibuat benar-benar diuji kredensialnya sekali.
+    """
     form = UserCreationForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
@@ -288,6 +303,13 @@ def login_user(request):
     return render(request, "login.html", context)
 
 def logout_user(request):
+    """Akhiri sesi pengguna dan bersihkan cookie `last_login`.
+
+    `logout()` menghapus data sesi di sisi server, tapi cookie `last_login`
+    dipasang terpisah oleh view ini sendiri sehingga tidak ikut terhapus. Kalau
+    tidak dihapus manual, halaman profil masih memajang waktu login milik akun
+    sebelumnya setelah pengguna keluar.
+    """
     logout(request)
     response = redirect("main:show_main")
     response.delete_cookie('last_login')
