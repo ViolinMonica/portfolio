@@ -268,7 +268,6 @@ def register(request):
         return redirect("main:login")
 
     context = {
-        "name": "Violin Monica",
         "form": form,
     }
     return render(request, "register.html", context)
@@ -284,7 +283,6 @@ def login_user(request):
         return response
 
     context = {
-        "name": "Violin Monica",
         "form": form,
     }
     return render(request, "login.html", context)
