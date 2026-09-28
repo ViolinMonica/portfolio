@@ -116,7 +116,8 @@ def show_projects(request):
     }
     return render(request, "project.html", context)
 
-
+@login_required(login_url="/login/")
+@permission_required("main.delete_project", raise_exception=True)
 def delete_project(request, project_id):
     """Hapus satu proyek, lalu selalu kembali ke daftar proyek.
 
