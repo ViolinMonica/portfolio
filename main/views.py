@@ -74,7 +74,6 @@ def create_project(request):
 
 def get_projects_json(request):
     """Endpoint JSON seluruh proyek, opsional difilter lewat query string `?title=`.
-
     Formatnya mengikuti serializer bawaan Django: list objek berisi kunci
     "model", "pk", dan "fields". Dikonsumsi dua pihak — `show_projects` yang
     memanggilnya langsung di dalam proses, dan siapa pun yang membuka URL-nya
@@ -143,7 +142,6 @@ def delete_project(request, project_id):
 
 def get_skills_json(request):
     """Endpoint JSON seluruh skill, terurut sesuai `Skill.Meta.ordering`.
-
     Sama seperti `get_projects_json`, isinya format serializer Django
     ("model"/"pk"/"fields") dan jadi satu-satunya sumber data skill: dipakai
     `_categories_with_skills` untuk mengisi halaman, sekaligus bisa dibuka
@@ -164,13 +162,13 @@ def get_skills_json(request):
 
 def _categories_with_skills(request):
     """Ambil skill lewat endpoint JSON, deserialisasi, lalu kelompokkan per kategori.
-
     Helper privat — diawali underscore karena bukan view dan tidak dipetakan di
     urls.py. Pengelompokan memakai satu dict `grouped` berkunci id kategori
     supaya total query tetap dua saja; kalau tiap kategori memanggil
     `category.skills.all()` sendiri-sendiri, jumlah query ikut bertambah
     sebanyak kategori (masalah N+1). Hasilnya ditempelkan ke tiap kategori
-    sebagai atribut `skill_items` agar bisa langsung dilooping di template. Jumlah star dan status "sudah di-star" dihitung sekali di sini lewat dua
+    sebagai atribut `skill_items` agar bisa langsung dilooping di template. 
+    Jumlah star dan status "sudah di-star" dihitung sekali di sini lewat dua
     query agregat, lalu ditempelkan ke tiap objek. Kalau template memanggil
     `skill.starred_by.count` sendiri-sendiri, jumlah query ikut bertambah
     sebanyak skill yang dirender.
