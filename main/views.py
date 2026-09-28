@@ -223,7 +223,7 @@ def create_skill(request):
     return render(request, "skills_form.html", {"form": form})
 
 @login_required(login_url="/login/")
-@permission_required("main.edit_skill", raise_exception=True)
+@permission_required("main.change_skill", raise_exception=True)
 def edit_skill(request, skill_id):
     """Tangani penyuntingan skill yang sudah ada.
 
