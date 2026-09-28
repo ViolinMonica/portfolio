@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 from main.context_processors import site_identity
 from main.models import Experience, Project
@@ -84,6 +85,10 @@ class ProjectsPageTest(TestCase):
         self.assertContains(response, "Tidak ada proyek dengan nama tersebut.")
 
 class CreateProjectTest(TestCase):
+    def setUp(self):
+        self.client.force_login(
+            User.objects.create_superuser("admin_test", password="rahasia123")
+        )
     def test_form_page_accessible(self):
         response = self.client.get(reverse("main:create_project"))
         self.assertEqual(response.status_code, 200)
@@ -154,3 +159,19 @@ class DeleteProjectTest(TestCase):
             reverse("main:delete_project", args=["00000000-0000-0000-0000-000000000000"])
         )
         self.assertEqual(response.status_code, 404)
+
+class SkillPermissionTest(TestCase):
+    """Pastikan pembatasan akses dijalankan server-side"""
+
+    def test_anonymous_redirected_to_login(self):
+        response = self.client.get(reverse("main:create_skill"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/login/", response["Location"])
+
+    def test_logged_in_without_permission_gets_403(self):
+        self.client.force_login(
+            User.objects.create_user("biasa", password="rahasia123")
+        )
+        response = self.client.get(reverse("main:create_skill"))
+        self.assertEqual(response.status_code, 403)
+
