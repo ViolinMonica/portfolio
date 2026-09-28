@@ -3,7 +3,7 @@ from main.views import (
     show_main, show_experience, show_projects, create_project,
     get_projects_json, delete_project,
     show_skills, create_skill, edit_skill, delete_skill, get_skills_json, register, 
-    login_user, logout_user, toggle_project_star, toggle_skill_star
+    login_user, logout_user, toggle_project_star, toggle_skill_star, create_project_ajax
 )
 
 app_name = "main"
@@ -25,4 +25,5 @@ urlpatterns = [
     path("login/", login_user, name="login"),
     path("logout/", logout_user, name="logout"),
     path("projects/<uuid:project_id>/star/",toggle_project_star,name="toggle_project_star",),
+    path("projects/add-ajax/", create_project_ajax, name="create_project_ajax"),
 ]
