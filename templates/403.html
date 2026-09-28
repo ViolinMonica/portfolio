@@ -4,15 +4,14 @@
 {% endblock meta %}
 {% block content %}
 <main>
-  <section class="experience-section">
+  <section class="experience-section error-page">
     <div class="container">
       <p class="section-kicker">403</p>
-      <h1>Akses ditolak</h1>
+      <h1>Access Denied</h1>
       <p class="empty-state">
-        Akun kamu tidak punya izin untuk melakukan aksi ini. Hubungi admin
-        kalau kamu merasa seharusnya bisa.
+        Your account does not have permission to do this action. 
       </p>
-      <a href="{% url 'main:show_skills' %}" class="button">Kembali ke Skills</a>
+      <a href="{% url 'main:show_skills' %}" class="button">Return to Skills</a>
     </div>
   </section>
 </main>
