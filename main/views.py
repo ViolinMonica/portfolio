@@ -1,7 +1,6 @@
 import datetime
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.core import serializers
 from django.http import HttpResponse
