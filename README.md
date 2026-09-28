@@ -45,6 +45,23 @@ python manage.py runserver
 ```
 
 Buka http://127.0.0.1:8000 di browser.
+A2. Menyiapkan peran Editor (WAJIB untuk Tugas 4)
+
+Peran Editor disimpan sebagai Django Group di database, bukan di kode, jadi
+tidak ikut ter-clone bersama repositori. Setelah `migrate`, buat perannya
+lewat halaman admin:
+
+1. `python manage.py createsuperuser`, lalu `python manage.py runserver`
+2. Buka http://127.0.0.1:8000/admin/ dan login
+3. Authentication and Authorization -> Groups -> Add group
+4. Name: `Editor`
+5. Pada *Available permissions*, pindahkan ke kanan:
+   - `main | skill | Can add skill`
+   - `main | skill | Can change skill`
+
+   Jangan masukkan `Can delete skill` — hak hapus sengaja hanya untuk admin.
+6. Save, lalu buka **Users**, pilih user yang mau dijadikan editor, dan
+   pindahkan group `Editor` ke kanan pada bagian *Groups*.
 
 B. Menjalankan proyek sehari-hari
 
@@ -113,17 +130,48 @@ portfolio/
 ## Deployment
 Live di: https://violin-monica-portofolio.pws.cs.ui.ac.id
 
+## Peran dan Hak Akses
+
+| Peran | Lihat skills | Star | Create & Update | Delete |
+|---|---|---|---|---|
+| Pengunjung (belum login) | ✅ | ❌ redirect ke login | ❌ redirect ke login | ❌ redirect ke login |
+| Pengguna terdaftar | ✅ | ✅ | ❌ 403 Forbidden | ❌ 403 Forbidden |
+| Editor (Django Group) | ✅ | ✅ | ✅ | ❌ 403 Forbidden |
+| Admin (superuser) | ✅ | ✅ | ✅ | ✅ |
+
+Pembatasannya ditegakkan di sisi server.
+Tiap view skill yang mengubah data memakai dua decorator bertumpuk:
+
+```python
+@login_required(login_url="/login/")
+@permission_required("main.change_skill", raise_exception=True)
+
+Urutannya menentukan perilaku. login_required dievaluasi lebih dulu sehingga
+pengunjung anonim diarahkan ke halaman login, sedangkan pengguna yang sudah
+login tapi tidak berizin diteruskan ke permission_required dan menerima
+403 Forbidden berkat raise_exception=True. Kalau hanya permission_required
+yang dipakai, pengunjung anonim ikut menerima 403; kalau raise_exception
+dihilangkan, pengguna terdaftar malah dilempar ke halaman login padahal sudah
+login. Permission add_skill, change_skill, dan delete_skill tidak
+didefinisikan manual — Django membuatnya otomatis untuk tiap model.
+
+Di template, tombol disembunyikan lewat {% if perms.main.add_skill %} dan
+seterusnya. Ini murni soal kerapian tampilan; yang benar-benar menahan akses
+tetap decorator di atas, karena URL-nya bisa diketik langsung.
 ---
 
 ## Progres Mingguan & Setup Tambahan
 - Minggu 0: Setup dasar & Hero Section
 1. Inisialisasi project Django, konfigurasi static/ dan templates/.
 2. Membangun hero section (identitas, foto, bio, meta data, social links) dengan CSS Grid, konten disesuaikan dengan data pribadi.
+
 - Minggu 1: Skills, Filter, Projects & Dokumentasi
 1. Membangun Skills section dengan kategori dan sistem pill, memakai icon dari Devicon dan Simple Icons.
+
 2. Menambahkan dropdown filter kategori skill menggunakan <select> + JavaScript.
 3. Membangun Projects section dengan layout grid responsif.
 4. Memisahkan JavaScript ke script.js, menambahkan komentar dokumentasi, dan menulis README.
+
 - Minggu 2: Model, view, template, dan unit test
 1. Menambahkan model Experience dan Project pada aplikasi main (lebih dari tiga field, UUID sebagai primary key, choices, dan @property untuk data turunan).
 2. Membuat dan menerapkan migrasi (makemigrations + migrate), berkas migrasi ikut di-commit.
@@ -141,6 +189,30 @@ Menambahkan unit test yang mencakup akses URL + template, data muncul di HTML, d
 5. Menampilkan data skill lewat deserialisasi JSON (`_categories_with_skills`), bukan query model langsung, supaya halaman HTML dan endpoint JSON pasti memakai sumber data yang sama.
 6. Refactor `index.html`: sekitar 227 baris markup skill hardcoded diganti perulangan dari database, dan markup pill dipindah ke partial `components/skill_pill.html`.
 7. Pengembangan di luar instruksi: auto-slug kategori dengan penanganan tabrakan nama, `on_delete=PROTECT`, filter kategori yang opsinya dirender dari database, flag `is_featured` dengan penanda visual, tombol aksi SVG dengan state `:hover` dan `:focus-visible`, serta perbaikan `django.contrib.messages` yang sebelumnya tidak pernah dirender di template mana pun.
+
+- Minggu 4: Autentikasi, Otorisasi, dan Fitur Star
+1. Menambahkan halaman register, login, dan logout memakai `UserCreationForm`
+   dan `AuthenticationForm` bawaan Django, serta cookie `last_login` yang
+   dipasang saat login dan dihapus saat logout.
+2. Membuat peran Editor sebagai Django Group lewat halaman admin, memakai
+   permission `add_skill` dan `change_skill` yang dibuat Django otomatis.
+3. Menerapkan pembatasan akses di sisi server pada `create_skill`,
+   `edit_skill`, dan `delete_skill` dengan `login_required` +
+   `permission_required(raise_exception=True)`, sehingga pengunjung anonim
+   diarahkan ke login sementara pengguna tanpa izin menerima 403.
+4. Menyembunyikan tombol create, update, dan delete di `skill.html` memakai
+   variabel `perms`.
+5. Menambahkan `ManyToManyField` `starred_by` ke model `Skill` beserta
+   migrasinya, dan view `toggle_skill_star` yang hanya menerima POST dengan
+   `{% csrf_token %}`. Halaman menampilkan jumlah total star sekaligus status
+   pengguna yang sedang login.
+6. Menutup kebocoran data pada endpoint JSON: `get_skills_json` dan
+   `get_projects_json` sekarang membatasi field yang diserialisasi, sehingga
+   daftar pengguna pemberi star tidak ikut terekspos.
+7. Pengembangan di luar instruksi: halaman 403 kustom, jumlah star dihitung
+   sekali lewat query agregat supaya tidak menambah query per skill, dan
+   tombol star memakai `aria-pressed` agar status toggle-nya terbaca screen
+   reader.
 
 ## Pertanyaan Reflektif
 ### Tugas 1
@@ -317,3 +389,45 @@ Keterbatasan AI dan perbaikan manual yang saya lakukan:
 - Masalah environment yang saya diagnosa sendiri. Folder proyek berada di dalam OneDrive, dan itu dua kali merusak isi repositori: object git hilang sehingga `git commit` gagal dengan `invalid object`, dan dua berkas gambar di `static/img/` terhapus sendiri. Saya memulihkannya lewat `git hash-object -w`, `git fetch --refetch`, dan `git restore`.
 
 Log chat AI: https://drive.google.com/file/d/1m4IWbC-5gKajS-YXYvwKnYW784G-qY-j/view?usp=sharing 
+
+### Tugas 4
+Saya memakai Claude (Anthropic) lewat Claude Code di terminal. Strategi
+prompting yang saya pakai: menempelkan instruksi tugas beserta rubrik
+penilaiannya ke prompt, lalu meminta walkthrough bertahap alih-alih kode jadi,
+supaya seluruh kodenya tetap saya ketik sendiri dan saya paham tiap
+perubahannya. Saya juga meminta pesan commit per perubahan kecil, bukan satu
+commit besar di akhir.
+
+Bagian yang dibantu AI:
+
+- Audit riwayat git untuk menemukan perubahan yang tidak disengaja
+- Rancangan urutan pengerjaan dan pemecahan tiap fase menjadi commit terpisah
+- Pola `login_required` + `permission_required(raise_exception=True)` beserta
+  alasan urutannya
+- Penemuan kebocoran `starred_by` pada endpoint JSON dan cara menutupnya
+- Optimasi perhitungan jumlah star agar tidak menimbulkan query per skill
+- Penyusunan docstring, pesan commit, dan struktur README ini
+
+Keterbatasan AI dan perbaikan manual yang saya lakukan:
+
+- AI menemukan bahwa link navigasi `Skills` hilang dari `base.html`, tapi
+  penyebabnya juga dari sesi AI sebelumnya: perubahan fungsional (menambah
+  menu login/register) dicampur dengan reindentasi seluruh berkas dalam satu
+  commit, sehingga satu baris yang terhapus tidak kelihatan di diff. Saya
+  memulihkannya dan memisahkannya jadi commit tersendiri.
+- AI memberi potongan CSS yang duplikat dengan isi `style.css` yang sudah ada.
+  Aturan `.star-count` jadi tertulis dua kali dan `.skill-star-form` ternyata
+  sama persis dengan `.skill-action-form` yang sudah dipakai. Saya menemukannya
+  waktu membuka file CSS-nya, lalu minta diganti dengan aturan yang hanya
+  menambal selisihnya.
+- Rencana awal AI menyasar model `Project` karena saya belum menyebutkan bahwa
+  fitur minggu ini harus diterapkan ke bagian Skills. Setelah saya perjelas,
+  rencananya harus disusun ulang.
+- Saya salah mengetik nama permission menjadi `main.edit_skill`, padahal Django
+  membuat `main.change_skill`. Bug ini tidak memunculkan error apa pun —
+  superuser tetap bisa mengedit karena punya seluruh izin secara otomatis, dan
+  yang rusak hanya peran Editor. AI menemukannya waktu saya minta pengecekan
+  status pengerjaan.
+
+Log chat AI: https://drive.google.com/file/d/1bAEosbTQq-A5bJtaMFcPdzXDDB1KhoyJ/view?usp=sharing
+

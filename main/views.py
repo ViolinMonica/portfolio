@@ -6,9 +6,9 @@ from django.contrib import messages
 from django.core import serializers
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib.auth.decorators import login_required  
-from django.core.exceptions import PermissionDenied        
-
+from django.contrib.auth.decorators import login_required, permission_required 
+from django.core.exceptions import PermissionDenied    
+from django.db.models import Count
 
 from main.forms import ProjectForm, SkillForm
 from main.models import Experience, Project, Skill, SkillCategory
@@ -73,7 +73,10 @@ def get_projects_json(request):
     "model", "pk", dan "fields". Dikonsumsi dua pihak — `show_projects` yang
     memanggilnya langsung di dalam proses, dan siapa pun yang membuka URL-nya
     (fetch dari JavaScript maupun pengecekan manual lewat browser). Pencarian
-    judul memakai `icontains` supaya tidak peduli huruf besar-kecil.
+    judul memakai `icontains` supaya tidak peduli huruf besar-kecil. Daftar `fields` dibatasi eksplisit, bukan menyerialisasi seluruh model:
+    relasi `starred_by` menyimpan pengguna yang memberi star, dan tanpa
+    pembatasan ini endpoint publik ikut memuat id (atau username) mereka.
+
     """
     title_query = request.GET.get("title", "").strip()
     projects = Project.objects.all()
@@ -81,7 +84,10 @@ def get_projects_json(request):
     if title_query:
         projects = projects.filter(title__icontains=title_query)
     projects_json = serializers.serialize(
-        "json", projects, use_natural_foreign_keys=True)
+        "json",
+        projects,
+        fields=("title", "description", "tech_stack", "project_url", "project_image_url"),
+    )
     return HttpResponse(projects_json, content_type="application/json")
 
 
@@ -135,10 +141,16 @@ def get_skills_json(request):
     ("model"/"pk"/"fields") dan jadi satu-satunya sumber data skill: dipakai
     `_categories_with_skills` untuk mengisi halaman, sekaligus bisa dibuka
     langsung sebagai URL. Tidak ada parameter filter karena jumlah skill kecil
-    dan pengelompokannya dikerjakan di sisi Python.
+    dan pengelompokannya dikerjakan di sisi Python. Daftar `fields` dibatasi eksplisit, bukan menyerialisasi seluruh model:
+    relasi `starred_by` menyimpan pengguna yang memberi star, dan tanpa
+    pembatasan ini endpoint publik ikut memuat id (atau username) mereka.   
     """
     return HttpResponse(
-        serializers.serialize("json", Skill.objects.all()),
+        serializers.serialize(
+            "json",
+            Skill.objects.all(),
+            fields=("category", "name", "icon", "is_featured", "created_at"),
+        ),
         content_type="application/json",
     )
 
@@ -151,7 +163,10 @@ def _categories_with_skills(request):
     supaya total query tetap dua saja; kalau tiap kategori memanggil
     `category.skills.all()` sendiri-sendiri, jumlah query ikut bertambah
     sebanyak kategori (masalah N+1). Hasilnya ditempelkan ke tiap kategori
-    sebagai atribut `skill_items` agar bisa langsung dilooping di template.
+    sebagai atribut `skill_items` agar bisa langsung dilooping di template. Jumlah star dan status "sudah di-star" dihitung sekali di sini lewat dua
+    query agregat, lalu ditempelkan ke tiap objek. Kalau template memanggil
+    `skill.starred_by.count` sendiri-sendiri, jumlah query ikut bertambah
+    sebanyak skill yang dirender.
     """
     json_response = get_skills_json(request)
     skills = [
@@ -163,7 +178,17 @@ def _categories_with_skills(request):
 
     categories = list(SkillCategory.objects.all())
     grouped = {category.id: [] for category in categories}
+    star_counts = dict(
+        Skill.objects.annotate(total=Count("starred_by")).values_list("id", "total")
+    )
+    starred_ids = (
+        set(request.user.starred_skills.values_list("id", flat=True))
+        if request.user.is_authenticated
+        else set()
+    )
     for skill in skills:
+        skill.star_count = star_counts.get(skill.id, 0)
+        skill.is_starred = skill.id in starred_ids
         grouped[skill.category_id].append(skill)
 
     for category in categories:
@@ -178,7 +203,8 @@ def show_skills(request):
         request, "skill.html", {"category_list": _categories_with_skills(request)}
     )
 
-
+@login_required(login_url="/login/")
+@permission_required("main.add_skill", raise_exception=True)
 def create_skill(request):
     """Tangani penambahan skill baru lewat SkillForm.
 
@@ -196,7 +222,8 @@ def create_skill(request):
 
     return render(request, "skills_form.html", {"form": form})
 
-
+@login_required(login_url="/login/")
+@permission_required("main.change_skill", raise_exception=True)
 def edit_skill(request, skill_id):
     """Tangani penyuntingan skill yang sudah ada.
 
@@ -216,7 +243,8 @@ def edit_skill(request, skill_id):
 
     return render(request, "skills_form.html", {"form": form, "skill": skill})
 
-
+@login_required(login_url="/login/")
+@permission_required("main.delete_skill", raise_exception=True)
 def delete_skill(request, skill_id):
     """Hapus satu skill, lalu selalu kembali ke halaman skill.
 
@@ -268,13 +296,42 @@ def logout_user(request):
     return response
 
 @login_required(login_url="/login/")
-def toggle_star(request, project_id):
+def toggle_skill_star(request, skill_id):
+    """Beri atau batalkan star pada satu skill untuk pengguna yang sedang login.
+
+    Hanya POST yang mengubah data; GET diarahkan balik tanpa efek supaya star
+    tidak bisa terpicu lewat URL yang sekadar dibuka atau di-prefetch browser.
+    Pengecekan memakai `.exists()` alih-alih `request.user in
+    skill.starred_by.all()` agar cukup satu query COUNT, bukan memuat seluruh
+    daftar pengguna ke memori hanya untuk satu pemeriksaan keanggotaan.
+    """
+    skill = get_object_or_404(Skill, pk=skill_id)
+
+    if request.method == "POST":
+        if skill.starred_by.filter(pk=request.user.pk).exists():
+            skill.starred_by.remove(request.user)
+        else:
+            skill.starred_by.add(request.user)
+
+    return redirect("main:show_skills")
+
+@login_required(login_url="/login/")
+def toggle_project_star(request, project_id):
+    """Beri atau batalkan star pada satu proyek untuk pengguna yang sedang login.
+
+    Hanya POST yang mengubah data; GET diarahkan balik tanpa efek supaya star
+    tidak bisa terpicu lewat URL yang sekadar dibuka atau di-prefetch browser.
+    Pengecekan memakai `.exists()` alih-alih `request.user in
+    project.starred_by.all()` agar cukup satu query COUNT, bukan memuat seluruh
+    daftar pengguna ke memori hanya untuk satu pemeriksaan keanggotaan.
+    """
     project = get_object_or_404(Project, pk=project_id)
 
     if request.method == "POST":
-        if request.user in project.starred_by.all():
+        if project.starred_by.filter(pk=request.user.pk).exists():
             project.starred_by.remove(request.user)
         else:
             project.starred_by.add(request.user)
 
     return redirect("main:show_projects")
+

@@ -924,3 +924,28 @@ h1, .brand {
     background: rgba(255, 255, 255, 0.25);
     font-size: 0.8rem;
 }
+
+/* Star selalu terlihat — dia menampilkan angka, bukan kontrol edit yang
+   sengaja diredupkan — dan lebarnya ikut isi, bukan kotak 1.75rem. */
+.skill-action--star {
+    width: auto;
+    gap: 0.2rem;
+    padding: 0 0.35rem;
+    opacity: 1;
+}
+
+.skill-action--star.is-starred {
+    color: #d9a441;
+}
+
+/* .star-count aslinya buat tombol gelap di Projects; di sini latarnya
+   transparan, jadi pill putihnya dilepas. */
+.skill-action--star .star-count {
+    padding: 0;
+    background: none;
+    font-size: 0.7rem;
+}
+
+.error-page .button {
+    margin-top: 1.5rem;
+}
