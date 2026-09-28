@@ -124,7 +124,10 @@ class Skill(models.Model):
     `on_delete=PROTECT`, bukan CASCADE: menghapus kategori yang masih berisi
     skill akan ditolak, bukan diam-diam ikut menghapus seluruh isinya.
     Urutan tampil memakai `created_at` supaya susunan pill mengikuti urutan
-    penambahan dan tetap stabil, tidak berubah setiap field lain disunting.
+    penambahan dan tetap stabil, tidak berubah setiap field lain disunting. 
+    Batas "maksimal satu star per pengguna" tidak perlu divalidasi di view,
+    tabel perantara ManyToMany punya unique constraint (skill_id, user_id),
+    dan `.add()` bersifat idempoten.
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -137,6 +140,7 @@ class Skill(models.Model):
     icon = models.CharField(max_length=200, blank=True)
     is_featured = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    starred_by = models.ManyToManyField(User, related_name="starred_skills", blank=True)
 
     class Meta:
         ordering = ['category__order', 'created_at']
