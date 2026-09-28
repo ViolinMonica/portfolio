@@ -945,3 +945,7 @@ h1, .brand {
     background: none;
     font-size: 0.7rem;
 }
+
+.error-page .button {
+    margin-top: 1.5rem;
+}
