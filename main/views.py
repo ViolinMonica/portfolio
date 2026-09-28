@@ -6,9 +6,9 @@ from django.contrib import messages
 from django.core import serializers
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib.auth.decorators import login_required  
-from django.core.exceptions import PermissionDenied        
-
+from django.contrib.auth.decorators import login_required, permission_required 
+from django.core.exceptions import PermissionDenied    
+from django.db.models import Count
 
 from main.forms import ProjectForm, SkillForm
 from main.models import Experience, Project, Skill, SkillCategory
@@ -178,7 +178,8 @@ def show_skills(request):
         request, "skill.html", {"category_list": _categories_with_skills(request)}
     )
 
-
+@login_required(login_url="/login/")
+@permission_required("main.add_skill", raise_exception=True)
 def create_skill(request):
     """Tangani penambahan skill baru lewat SkillForm.
 
@@ -196,7 +197,8 @@ def create_skill(request):
 
     return render(request, "skills_form.html", {"form": form})
 
-
+@login_required(login_url="/login/")
+@permission_required("main.edit_skill", raise_exception=True)
 def edit_skill(request, skill_id):
     """Tangani penyuntingan skill yang sudah ada.
 
@@ -216,7 +218,8 @@ def edit_skill(request, skill_id):
 
     return render(request, "skills_form.html", {"form": form, "skill": skill})
 
-
+@login_required(login_url="/login/")
+@permission_required("main.delete_skill", raise_exception=True)
 def delete_skill(request, skill_id):
     """Hapus satu skill, lalu selalu kembali ke halaman skill.
 
@@ -268,13 +271,21 @@ def logout_user(request):
     return response
 
 @login_required(login_url="/login/")
-def toggle_star(request, project_id):
-    project = get_object_or_404(Project, pk=project_id)
+def toggle_star(request, skill_id):
+    """Beri atau batalkan star pada satu skill untuk pengguna yang sedang login.
+
+    Hanya POST yang mengubah data; GET diarahkan balik tanpa efek supaya star
+    tidak bisa terpicu lewat URL yang sekadar dibuka atau di-prefetch browser.
+    Pengecekan memakai `.exists()` alih-alih `request.user in
+    skill.starred_by.all()` agar cukup satu query COUNT, bukan memuat seluruh
+    daftar pengguna ke memori hanya untuk satu pemeriksaan keanggotaan.
+    """
+    skill = get_object_or_404(Skill, pk=skill_id)
 
     if request.method == "POST":
-        if request.user in project.starred_by.all():
-            project.starred_by.remove(request.user)
+        if skill.starred_by.filter(pk=request.user.pk).exists():
+            skill.starred_by.remove(request.user)
         else:
-            project.starred_by.add(request.user)
+            skill.starred_by.add(request.user)
 
-    return redirect("main:show_projects")
+    return redirect("main:show_skills")
