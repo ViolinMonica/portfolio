@@ -27,30 +27,34 @@
             <div class="hero-details">
                 <p class="bio">{{ bio }}</p>
                 <!-- <dl> (description list) dipakai karena datanya sepasang label-isi (key-value) -->
-                <dl class="meta-list">
-                    <div class="meta-row">
-                        <dt>NPM</dt>
-                        <dd>{{ npm }}</dd>
+                    <dl class="meta-list">
+                        <div class="meta-row">
+                            <dt>NPM</dt>
+                            <dd>{{ npm }}</dd>
+                        </div>
+                        <div class="meta-row">
+                            <dt>Program</dt>
+                            <dd>{{ study_program }}</dd>
+                        </div>
+                        <div class="meta-row">
+                            <dt>Last Login Session</dt>
+                            <dd>{{ last_login }}</dd>
+                        </div>
+                    </dl>
+                    
+                    <!-- Link sosial. Icon devicon SENGAJA tanpa class "colored",
+                    biar warnanya ngikut warna teks (putih) alih-alih warna resmi brand -->
+                    <div class="social-links">
+                        <a href="https://github.com/ViolinMonica" class="social-link"><i class="devicon-github-plain"></i>GitHub</a>
+                        <a href="https://linkedin.com/in/violin-monica" class="social-link"><i class="devicon-linkedin-plain"></i>LinkedIn</a>
+                        <!-- Icon Gmail pakai <img> (bukan font icon), warnanya diatur lewat
+                        parameter di URL simpleicons.org (/faf6ee = warna --paper) -->
+                        <a href="mailto:violin.monica@ui.ac.id" class="social-link"><img src="https://cdn.simpleicons.org/gmail/faf6ee" alt="logo gmail">Email</a>
                     </div>
-                    <div class="meta-row">
-                        <dt>Program</dt>
-                        <dd>{{ study_program }}</dd>
-                    </div>
-                </dl>
-                
-                <!-- Link sosial. Icon devicon SENGAJA tanpa class "colored",
-                biar warnanya ngikut warna teks (putih) alih-alih warna resmi brand -->
-                <div class="social-links">
-                    <a href="https://github.com/ViolinMonica" class="social-link"><i class="devicon-github-plain"></i>GitHub</a>
-                    <a href="https://linkedin.com/in/violin-monica" class="social-link"><i class="devicon-linkedin-plain"></i>LinkedIn</a>
-                    <!-- Icon Gmail pakai <img> (bukan font icon), warnanya diatur lewat
-                    parameter di URL simpleicons.org (/faf6ee = warna --paper) -->
-                    <a href="mailto:violin.monica@ui.ac.id" class="social-link"><img src="https://cdn.simpleicons.org/gmail/faf6ee" alt="logo gmail">Email</a>
                 </div>
-            </div>
                 
-        </div>
-    </section>
-</main>
-{% endblock content %}
-        
+            </div>
+        </section>
+    </main>
+    {% endblock content %}
+    
