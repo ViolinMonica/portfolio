@@ -73,7 +73,10 @@ def get_projects_json(request):
     "model", "pk", dan "fields". Dikonsumsi dua pihak — `show_projects` yang
     memanggilnya langsung di dalam proses, dan siapa pun yang membuka URL-nya
     (fetch dari JavaScript maupun pengecekan manual lewat browser). Pencarian
-    judul memakai `icontains` supaya tidak peduli huruf besar-kecil.
+    judul memakai `icontains` supaya tidak peduli huruf besar-kecil. Daftar `fields` dibatasi eksplisit, bukan menyerialisasi seluruh model:
+    relasi `starred_by` menyimpan pengguna yang memberi star, dan tanpa
+    pembatasan ini endpoint publik ikut memuat id (atau username) mereka.
+
     """
     title_query = request.GET.get("title", "").strip()
     projects = Project.objects.all()
@@ -81,7 +84,10 @@ def get_projects_json(request):
     if title_query:
         projects = projects.filter(title__icontains=title_query)
     projects_json = serializers.serialize(
-        "json", projects, use_natural_foreign_keys=True)
+        "json",
+        projects,
+        fields=("title", "description", "tech_stack", "project_url", "project_image_url"),
+    )
     return HttpResponse(projects_json, content_type="application/json")
 
 
@@ -135,10 +141,16 @@ def get_skills_json(request):
     ("model"/"pk"/"fields") dan jadi satu-satunya sumber data skill: dipakai
     `_categories_with_skills` untuk mengisi halaman, sekaligus bisa dibuka
     langsung sebagai URL. Tidak ada parameter filter karena jumlah skill kecil
-    dan pengelompokannya dikerjakan di sisi Python.
+    dan pengelompokannya dikerjakan di sisi Python. Daftar `fields` dibatasi eksplisit, bukan menyerialisasi seluruh model:
+    relasi `starred_by` menyimpan pengguna yang memberi star, dan tanpa
+    pembatasan ini endpoint publik ikut memuat id (atau username) mereka.   
     """
     return HttpResponse(
-        serializers.serialize("json", Skill.objects.all()),
+        serializers.serialize(
+            "json",
+            Skill.objects.all(),
+            fields=("category", "name", "icon", "is_featured", "created_at"),
+        ),
         content_type="application/json",
     )
 
@@ -284,7 +296,7 @@ def logout_user(request):
     return response
 
 @login_required(login_url="/login/")
-def toggle_star(request, skill_id):
+def toggle_skill_star(request, skill_id):
     """Beri atau batalkan star pada satu skill untuk pengguna yang sedang login.
 
     Hanya POST yang mengubah data; GET diarahkan balik tanpa efek supaya star
@@ -302,3 +314,24 @@ def toggle_star(request, skill_id):
             skill.starred_by.add(request.user)
 
     return redirect("main:show_skills")
+
+@login_required(login_url="/login/")
+def toggle_project_star(request, project_id):
+    """Beri atau batalkan star pada satu proyek untuk pengguna yang sedang login.
+
+    Hanya POST yang mengubah data; GET diarahkan balik tanpa efek supaya star
+    tidak bisa terpicu lewat URL yang sekadar dibuka atau di-prefetch browser.
+    Pengecekan memakai `.exists()` alih-alih `request.user in
+    project.starred_by.all()` agar cukup satu query COUNT, bukan memuat seluruh
+    daftar pengguna ke memori hanya untuk satu pemeriksaan keanggotaan.
+    """
+    project = get_object_or_404(Project, pk=project_id)
+
+    if request.method == "POST":
+        if project.starred_by.filter(pk=request.user.pk).exists():
+            project.starred_by.remove(request.user)
+        else:
+            project.starred_by.add(request.user)
+
+    return redirect("main:show_projects")
+
