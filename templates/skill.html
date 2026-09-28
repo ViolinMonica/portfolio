@@ -33,6 +33,9 @@
                     {% for skill in category.skill_items %}
                     <div class="skill-item">
                         {% include "components/skill_pill.html" with skill=skill %}
+                        {% if user.is_authenticated %}
+                            {% include "components/skill_star.html" with skill=skill %}
+                        {% endif %}
                         <a href="{% url 'main:edit_skill' skill.id %}"
                         class="skill-action"
                         title="Edit {{ skill.name }}"

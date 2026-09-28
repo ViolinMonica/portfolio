@@ -1,0 +1,10 @@
+<form method="post" action="{% url 'main:toggle_skill_star' skill.id %}" class="skill-action-form">
+    {% csrf_token %}
+    <button type="submit"
+            class="skill-action skill-action--star{% if skill.is_starred %} is-starred{% endif %}"
+            title="{% if skill.is_starred %}Batalkan star{% else %}Beri star{% endif %} {{ skill.name }}"
+            aria-pressed="{% if skill.is_starred %}true{% else %}false{% endif %}">
+        <span aria-hidden="true">{% if skill.is_starred %}★{% else %}☆{% endif %}</span>
+        <span class="star-count">{{ skill.star_count }}</span>
+    </button>
+</form>
