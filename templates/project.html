@@ -14,6 +14,7 @@
                     <span aria-hidden="true">+</span>
                     Add project
                 </button>
+                {% include 'components/project_form_modal.html' %}
             {% endif %}                 
         </div>
         <form id="project-search-form" class="project-search">
@@ -90,7 +91,7 @@
         // Dummy UUID digunakan untuk digantikan oleh ID asli dari data JSON
         const deleteUrl = "{% url 'main:delete_project' '00000000-0000-0000-0000-000000000000' %}"
             .replace('00000000-0000-0000-0000-000000000000', projectId);
-        const starUrl = "{% url 'main:toggle_star' '00000000-0000-0000-0000-000000000000' %}"
+        const starUrl = "{% url 'main:toggle_project_star' '00000000-0000-0000-0000-000000000000' %}"
             .replace('00000000-0000-0000-0000-000000000000', projectId);
 
         const deleteHtml = IS_SUPERUSER 
@@ -213,7 +214,7 @@
 
             if (response.ok) {
                 projectForm.reset();
-                closeProjectModal();
+                document.getElementById('add-project-modal').hidePopover();
                 showToast('Berhasil', 'Proyek baru berhasil ditambahkan!', 'success');
                 fetchProjects(searchInput.value.trim());
             } else {

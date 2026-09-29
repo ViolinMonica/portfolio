@@ -60,29 +60,30 @@ class ProjectsPageTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "project.html")
 
+    # Daftar proyek sekarang dirender JS dari endpoint JSON, jadi datanya dicek di sana.
     def test_data_shown_when_present(self):
         Project.objects.create(
             title="NUSA-CROP", description="Crop recommender", tech_stack="Django"
         )
-        response = self.client.get(reverse("main:show_projects"))
+        response = self.client.get(reverse("main:get_projects_json"))
         self.assertContains(response, "NUSA-CROP")
         self.assertContains(response, "Django")
 
-    def test_empty_message_when_no_data(self):
-        response = self.client.get(reverse("main:show_projects"))
-        self.assertContains(response, "Belum ada proyek yang ditambahkan.")
+    def test_empty_list_when_no_data(self):
+        response = self.client.get(reverse("main:get_projects_json"))
+        self.assertEqual(response.json(), [])
 
     def test_search_filters_by_title(self):
         Project.objects.create(title="NUSA-CROP", description="d", tech_stack="t")
         Project.objects.create(title="Bobol", description="d", tech_stack="t")
-        response = self.client.get(reverse("main:show_projects"), {"title": "nusa"})
+        response = self.client.get(reverse("main:get_projects_json"), {"title": "nusa"})
         self.assertContains(response, "NUSA-CROP")
         self.assertNotContains(response, "Bobol")
 
-    def test_search_empty_message_when_no_match(self):
+    def test_search_empty_list_when_no_match(self):
         Project.objects.create(title="NUSA-CROP", description="d", tech_stack="t")
-        response = self.client.get(reverse("main:show_projects"), {"title": "zzz"})
-        self.assertContains(response, "Tidak ada proyek dengan nama tersebut.")
+        response = self.client.get(reverse("main:get_projects_json"), {"title": "zzz"})
+        self.assertEqual(response.json(), [])
 
 class CreateProjectTest(TestCase):
     def setUp(self):
@@ -113,7 +114,6 @@ class CreateProjectTest(TestCase):
         )
         self.assertRedirects(response, reverse("main:show_projects"))
         self.assertTrue(Project.objects.filter(title="Portfolio Website").exists())
-        self.assertContains(response, "Portfolio Website")
 
     def test_invalid_post_shows_errors(self):
         response = self.client.post(reverse("main:create_project"), {"title": ""})
@@ -140,6 +140,9 @@ class ProjectsJsonTest(TestCase):
 
 class DeleteProjectTest(TestCase):
     def setUp(self):
+        self.client.force_login(
+            User.objects.create_superuser("admin_test", password="rahasia123")
+        )
         self.project = Project.objects.create(
             title="NUSA-CROP", description="d", tech_stack="t"
         )

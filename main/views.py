@@ -8,7 +8,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import login_required, permission_required 
 from django.core.exceptions import PermissionDenied    
 from django.db.models import Count
-from django.http import DjangoResponse
 from django.views.decorators.http import require_POST
 
 from main.forms import ProjectForm, SkillForm
@@ -134,6 +133,7 @@ def show_projects(request):
     context = {
         "name": "Violin Monica",
         "title_query": title_query,
+        "form": ProjectForm(),
     }
     return render(request, "project.html", context)
 
