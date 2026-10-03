@@ -145,6 +145,7 @@ Tiap view skill yang mengubah data memakai dua decorator bertumpuk:
 ```python
 @login_required(login_url="/login/")
 @permission_required("main.change_skill", raise_exception=True)
+```
 
 Urutannya menentukan perilaku. login_required dievaluasi lebih dulu sehingga
 pengunjung anonim diarahkan ke halaman login, sedangkan pengguna yang sudah
@@ -158,6 +159,14 @@ didefinisikan manual — Django membuatnya otomatis untuk tiap model.
 Di template, tombol disembunyikan lewat {% if perms.main.add_skill %} dan
 seterusnya. Ini murni soal kerapian tampilan; yang benar-benar menahan akses
 tetap decorator di atas, karena URL-nya bisa diketik langsung.
+
+Sejak Tugas 5, tambah skill dilakukan lewat modal AJAX ke `create_skill_ajax`.
+View ini tidak memakai kedua decorator di atas karena keduanya membalas
+redirect atau halaman HTML, sementara pemanggilnya `fetch()` yang mengharapkan
+JSON. Sebagai gantinya izin dicek di dalam view dengan
+`request.user.has_perm("main.add_skill")`, dan pengunjung anonim maupun
+pengguna tanpa izin sama-sama menerima `403` berisi pesan JSON.
+
 ---
 
 ## Progres Mingguan & Setup Tambahan
@@ -213,6 +222,39 @@ Menambahkan unit test yang mencakup akses URL + template, data muncul di HTML, d
    sekali lewat query agregat supaya tidak menambah query per skill, dan
    tombol star memakai `aria-pressed` agar status toggle-nya terbaca screen
    reader.
+
+- Minggu 5: AJAX, Fetch API, dan Keamanan Data di Sisi Klien
+1. Mengubah `show_skills` agar hanya merender kerangka halaman. Daftar skill
+   kini diambil lewat `fetch()` ke `/api/skills/` lalu dirender dengan
+   JavaScript.
+2. Menyusun ulang `get_skills_json` secara manual dengan `JsonResponse`. Data
+   dikelompokkan per kategori dan tiap skill membawa `star_count` serta
+   `is_starred` milik pengguna yang sedang login. Totalnya tetap tiga query
+   berapa pun jumlah skill-nya.
+3. Menampilkan tiga kondisi selama data dimuat: loading, data kosong, dan
+   error saat request gagal.
+4. Menambahkan pencarian skill berdasarkan nama lewat parameter `?name=`,
+   dengan debouncing 300 ms sehingga request baru dikirim setelah pengguna
+   berhenti mengetik.
+5. Memindahkan form tambah skill ke dalam modal (`popover`) di halaman skill.
+   View baru `create_skill_ajax` memvalidasi input dengan `SkillForm` dan
+   membalas JSON berstatus `201`, `400`, atau `403`. Hak akses dicek di dalam
+   view, dan token CSRF ikut terkirim lewat field `csrfmiddlewaretoken` di
+   `FormData`.
+6. Menampilkan toast saat skill berhasil ditambahkan maupun gagal, termasuk
+   pesan validasi dari server lengkap dengan nama field yang salah.
+7. Melakukan escaping pada setiap nilai teks yang disisipkan lewat
+   `innerHTML` di `skill.html` dan `project.html`, serta membersihkan input
+   dengan `strip_tags` di `clean_name`, `clean_icon`, dan
+   `clean_new_category` pada `SkillForm`.
+8. Menambahkan 9 unit test untuk `create_skill_ajax` (201, 400, 403, 405, dan
+   penolakan request tanpa token CSRF) serta `get_skills_json` (info star per
+   pengguna dan pencarian).
+9. Pengembangan di luar instruksi: `AbortController` untuk membatalkan request
+   lama supaya hasil yang telat datang tidak menimpa hasil terbaru, filter
+   kategori yang tetap berlaku saat mencari maupun setelah data ditambahkan,
+   dan pembersihan partial `skill_pill.html` serta `skill_star.html` yang tidak
+   terpakai lagi.
 
 ## Pertanyaan Reflektif
 ### Tugas 1
@@ -322,6 +364,67 @@ Memanggil `json.dumps()` langsung pada objek model pun akan gagal, karena objek 
 
 Alasan terakhir soal kontrak antar sistem. Hasil serialization tidak terikat pada Python, jadi penerimanya bisa JavaScript di browser, aplikasi mobile, atau layanan lain dalam bahasa apa pun. Format objek Python cuma bisa dimengerti Python, sedangkan JSON bisa dimengerti semuanya.
 
+### Tugas 5
+
+1. Apa itu debouncing dan mengapa penting untuk pencarian AJAX
+Debouncing adalah teknik menunda eksekusi sebuah fungsi sampai event pemicunya berhenti terjadi selama jeda waktu tertentu. Setiap kali event baru muncul sebelum jeda itu habis, hitungan waktunya diulang dari nol. Fungsinya baru benar-benar jalan sekali, yaitu setelah pengguna diam.
+
+Di halaman skill saya, penerapannya ada pada event `input` di kotak pencarian:
+
+```js
+let searchTimer;
+document.getElementById('skill-search').addEventListener('input', function (e) {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => fetchSkills(e.target.value.trim()), 300);
+});
+```
+
+Setiap ketikan membatalkan timer sebelumnya lewat `clearTimeout`, lalu memasang timer baru 300 ms. Request ke `/api/skills/?name=...` baru dikirim kalau dalam 300 ms tidak ada ketikan lagi.
+
+Alasan teknik ini penting:
+- Mengurangi jumlah request -> tanpa debouncing, mengetik "python" memicu enam request (`p`, `py`, `pyt`, dan seterusnya), padahal yang dibutuhkan pengguna hanya hasil untuk kata lengkapnya. Dengan debouncing, kalau diketik lancar, yang terkirim cukup satu request.
+- Mengurangi beban server dan database -> tiap request menjalankan query `name__icontains` ke database. Request yang hasilnya langsung dibuang tetap memakan kerja server, dan bebannya berlipat kalau penggunanya banyak.
+- Tampilan lebih stabil -> tiap request memicu kondisi loading lalu merender ulang daftar. Tanpa debouncing, halaman berkedip di setiap ketikan.
+- Memperkecil peluang race condition -> request tidak dijamin selesai sesuai urutan kirimnya. Kalau request untuk `py` ternyata selesai setelah request untuk `python`, hasil yang lebih lama akan menimpa hasil yang lebih baru. Debouncing memperkecil peluang ini karena request yang terkirim lebih sedikit, tapi tidak menghilangkannya sepenuhnya. Karena itu saya juga memakai `AbortController` untuk membatalkan request lama setiap kali request baru dikirim.
+
+Angka 300 ms saya pilih sebagai kompromi. Jeda yang terlalu pendek membuat debouncing hampir tidak berpengaruh, sedangkan jeda yang terlalu panjang membuat pencarian terasa lambat merespons.
+
+2. Fungsi `await` saat memakai `fetch()` dan apa yang terjadi tanpanya
+`fetch()` bersifat asinkron. Fungsi ini tidak langsung mengembalikan respons dari server, melainkan sebuah `Promise`, yaitu janji bahwa respons akan tersedia nanti setelah request selesai. `await` membuat fungsi `async` berhenti di baris itu sampai `Promise` tersebut selesai, lalu mengembalikan isinya, yaitu objek `Response`. Hal yang sama berlaku untuk `response.json()`, yang juga mengembalikan `Promise` karena isi respons dibaca secara bertahap dari jaringan.
+
+```js
+const response = await fetch(url, { signal: skillsAbortController.signal });
+if (!response.ok) throw new Error('Failed to fetch skills');
+const categories = await response.json();
+```
+
+`await` hanya menghentikan fungsi `fetchSkills` itu sendiri, bukan seluruh browser. Selama menunggu respons, halaman tetap bisa di-scroll dan diklik. Inilah yang membedakannya dari request sinkron yang membekukan halaman.
+
+Kalau `await` dihilangkan, beberapa hal akan rusak:
+- `response` berisi objek `Promise`, bukan `Response`. Properti `response.ok` bernilai `undefined`, sehingga `!response.ok` bernilai `true` dan kode langsung melempar error padahal request-nya mungkin berhasil. Pengguna akan melihat pesan "Gagal memuat data" setiap kali halaman dibuka.
+- Kalau pengecekan `ok` dilewati, `response.json` juga tidak ada di objek `Promise`, sehingga muncul `TypeError: response.json is not a function`.
+- Kalau hanya `await` pada `response.json()` yang dihilangkan, `categories` berisi `Promise`. Pemanggilan `categories.every(...)` dan `categories.map(...)` akan gagal karena `Promise` bukan array.
+- Error dari request yang gagal tidak lagi tertangkap `try...catch`, karena `catch` hanya menangkap penolakan `Promise` yang di-`await`. Akibatnya muncul *unhandled promise rejection* di console, dan kondisi error di halaman tidak pernah tampil.
+- Kode setelah `fetch()` berjalan sebelum data tiba. Misalnya `show('grid')` dijalankan duluan sehingga yang tampil adalah daftar kosong.
+
+Alternatif dari `await` adalah rantai `.then()`. Hasilnya sama, tapi `async`/`await` membuat alur asinkron bisa ditulis dan dibaca dari atas ke bawah seperti kode biasa, dan error-nya cukup ditangani dengan `try...catch`.
+
+3. Apa itu XSS dan mengapa data lewat AJAX/JavaScript lebih rentan dibanding template Django
+XSS (Cross-Site Scripting) adalah serangan di mana penyerang menyisipkan kode, biasanya JavaScript, ke dalam halaman yang nantinya dibuka oleh pengguna lain. Karena kode itu berjalan di dalam domain situs kita, browser memperlakukannya seperti kode milik situs sendiri. Kode tersebut bisa membaca isi halaman termasuk token CSRF, mengirim request atas nama korban memakai sesi login-nya, mengubah tampilan untuk menipu pengguna, atau mengarahkan korban ke situs lain.
+
+Yang relevan dengan proyek saya adalah *stored XSS*. Contohnya, seseorang yang punya akses tambah skill mengisi nama skill dengan `<img src=x onerror="alert(document.cookie)">`. Nilai itu tersimpan di database, lalu dikirim ke setiap pengunjung halaman skill lewat `/api/skills/`. Kalau ditampilkan apa adanya, browser semua pengunjung akan menjalankan skrip tersebut.
+
+Mengapa data lewat JavaScript lebih rentan:
+- Template Django melakukan auto-escaping secara default. Setiap `{{ skill.name }}` otomatis diubah dulu, misalnya `<` menjadi `&lt;`, sebelum masuk ke HTML. Developer harus sengaja mematikannya (`|safe` atau `{% autoescape off %}`) supaya data bisa berubah jadi tag. Jadi kondisi bawaannya aman.
+- Data dari AJAX tidak pernah melewati template engine. JSON dari `/api/skills/` langsung diterima JavaScript, lalu disusun jadi HTML memakai template literal dan dimasukkan lewat `innerHTML`. Baik template literal maupun `innerHTML` tidak melakukan escaping apa pun. Kondisi bawaannya justru tidak aman, sehingga developer harus ingat melakukan escaping di setiap nilai yang disisipkan. Satu nilai yang terlewat sudah cukup untuk membuka celah.
+- Ini benar terjadi di proyek saya. Waktu mengaudit kode, ternyata `project.html` memasukkan `project.title`, `project.description`, dan `project.project_url` ke `innerHTML` tanpa escaping sama sekali. Halaman skill sudah aman, tapi halaman project masih bolong. Yang terakhir ketemu adalah `project_url` di atribut `href`, satu baris yang terlewat dari perbaikan sebelumnya.
+
+Cara saya menanganinya:
+- Di sisi klien, saya memakai helper `esc()` yang mengubah lima karakter berbahaya (`& < > " '`) menjadi entitas HTML, lalu membungkus setiap nilai teks dari server dengannya. Untuk teks yang tidak butuh markup, seperti pesan toast dan pesan "Tidak ada skill dengan nama ...", saya memakai `textContent`, yang selalu memperlakukan isinya sebagai teks biasa.
+- Di sisi server, `SkillForm` membersihkan input dengan `strip_tags` di `clean_name`, `clean_icon`, dan `clean_new_category`, sehingga tag HTML tidak sempat tersimpan ke database.
+
+Kedua lapisan ini tetap saya pakai bersamaan. `strip_tags` hanya membersihkan data yang masuk lewat form, sementara data lama atau data yang masuk lewat jalur lain seperti halaman admin tidak ikut dibersihkan. Karena itu escaping di sisi klien tetap dibutuhkan sebagai pertahanan terakhir tepat sebelum data ditampilkan.
+
 ## AI Disclosure
 ### Tugas 1
 Saya menggunakan Claude (Anthropic) sebagai asisten belajar selama mengerjakan Tugas 1, dengan strategi utama yaitu meminta penjelasan konsep dan hint/referensi terlebih dahulu untuk kemudian dicoba dikulik dan diketik kodenya sendiri.  
@@ -430,4 +533,57 @@ Keterbatasan AI dan perbaikan manual yang saya lakukan:
   status pengerjaan.
 
 Log chat AI: https://drive.google.com/file/d/1bAEosbTQq-A5bJtaMFcPdzXDDB1KhoyJ/view?usp=sharing
+
+### Tugas 5
+Saya memakai Claude (Anthropic) lewat Claude Code di terminal. Strategi
+prompting yang saya pakai: menempelkan poin instruksi tugas satu per satu,
+meminta penjelasan cara mengerjakannya beserta contoh kode yang disesuaikan
+dengan kode saya yang sudah ada, lalu menerapkannya sendiri. Setelah tiap
+poin selesai saya meminta pesan commit tersendiri, dan di akhir saya
+menempelkan rubrik penilaian untuk mengaudit apakah semua kriteria sudah
+terpenuhi.
+
+Bagian yang dibantu AI:
+
+- Rancangan `get_skills_json` yang disusun manual dengan `JsonResponse`,
+  termasuk cara menghitung star tanpa query per skill
+- Kerangka halaman skill beserta fungsi render, kondisi loading/kosong/error,
+  dan helper `esc()`
+- Pola debouncing dan `AbortController` untuk pencarian
+- View `create_skill_ajax`, modal tambah skill, dan pengiriman token CSRF
+  lewat `FormData`
+- Debugging layout dan filter kategori yang rusak setelah data dirender lewat
+  JavaScript
+- Penyusunan unit test untuk view AJAX dan endpoint JSON
+- Audit kode terhadap rubrik penilaian
+- Pembuatan draf jawaban ketiga pertanyaan reflektif
+- Penyusunan pesan commit dan struktur README ini
+
+Keterbatasan AI dan perbaikan manual yang saya lakukan:
+
+- Kode awal dari AI membungkus seluruh kategori skill dalam satu
+  `<div id="skill-container">` tanpa memperhitungkan bahwa grid tiga kolom
+  dipasang di elemen induknya. Akibatnya semua kategori menumpuk jadi satu
+  kolom sempit. Saya melaporkannya, lalu masalahnya diperbaiki dengan
+  `display: contents`.
+- AI awalnya juga tidak memperhitungkan bahwa `script.js` mencari elemen
+  `.skill-category` sekali saja saat halaman dimuat. Karena data baru muncul
+  setelah `fetch()` selesai, filter kategori jadi tidak berfungsi sampai
+  pencariannya dipindah ke dalam handler `change`.
+- Instruksi AI untuk menaruh kotak pencarian "di bawah `<select>`" ambigu,
+  sehingga input sempat masuk ke dalam elemen `<select>`. Browser lalu
+  menutup `<select>` lebih awal dan dropdown filter jadi kosong. Bug ini
+  ketemu waktu saya minta pengecekan.
+- Kode JavaScript dari AI memakai tag Django `{{ ... }}` langsung sebagai
+  nilai boolean, yang ditandai error oleh VS Code. Saya menggantinya dengan
+  pola perbandingan string yang sudah saya pakai di `project.html`.
+- Nama berkas modal yang saya buat (`skills_form_modal.html`) berbeda dengan
+  nama yang di-include di template (`skill_form_modal.html`). AI menemukannya
+  waktu saya meminta pesan commit, sebelum sempat menyebabkan error di
+  halaman.
+- Waktu memeriksa tampilan lewat browser, AI sempat tertipu oleh berkas CSS
+  versi lama yang masih tersimpan di cache, sehingga perbaikan yang
+  sebenarnya sudah berhasil terlihat seperti belum berpengaruh.
+
+Log chat AI: https://drive.google.com/file/d/1mdrtWDa34Tm1raVyu_LBwfNKOoSMmBEF/view?usp=sharing
 
