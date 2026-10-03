@@ -172,7 +172,7 @@
             if (response.ok) {
                 skillForm.reset();
                 document.getElementById('add-skill-modal').hidePopover();
-                showToast('Berhasil', 'Skill baru berhasil ditambahkan!', 'success');
+                showToast('Success', 'New skill(s) is/are succesfully added!', 'success');
                 // Reset pencarian & isi ulang dropdown kategori (siapa tahu ada kategori baru)
                 document.getElementById('skill-search').value = '';
                 document.getElementById('skill-filter').length = 1;
@@ -180,12 +180,12 @@
             } else {
                 const errorMessages = result.errors
                 ? Object.values(result.errors).flat().map(error => error.message)
-                : [result.message || `Terjadi kesalahan (status ${response.status}).`];
-                showToast('Gagal menambahkan skill', errorMessages.join(' '), 'error');
+                : [result.message || `Error (status ${response.status}).`];
+                showToast('Failed to add skill', errorMessages.join(' '), 'error');
             }
         } catch (error) {
             console.error('Error adding skill:', error);
-            showToast('Gagal menambahkan skill', 'Tidak bisa terhubung ke server. Coba lagi.', 'error');
+            showToast('Failed to add skill', 'Can not connect to the server. Try again.', 'error');
         } finally {
             submitButton.disabled = false;
         }
