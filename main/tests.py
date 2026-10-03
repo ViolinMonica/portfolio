@@ -1,10 +1,10 @@
-from django.test import TestCase
+from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth.models import User
 
 from main.context_processors import site_identity
-from main.models import Experience, Project
+from main.models import Experience, Project, Skill, SkillCategory
 
 class ExperienceModelTest(TestCase):
     def test_is_ongoing_true_when_no_end_date(self):
@@ -178,3 +178,85 @@ class SkillPermissionTest(TestCase):
         response = self.client.get(reverse("main:create_skill"))
         self.assertEqual(response.status_code, 403)
 
+
+
+class CreateSkillAjaxTest(TestCase):
+    """View AJAX tambah skill: status HTTP, validasi, izin, CSRF, dan strip_tags."""
+
+    def setUp(self):
+        self.url = reverse("main:create_skill_ajax")
+        self.category = SkillCategory.objects.create(name="Testing Category")
+        self.admin = User.objects.create_superuser("admin", password="rahasia123")
+
+    def test_anonymous_gets_403_json(self):
+        response = self.client.post(self.url, {"name": "Go", "category": self.category.id})
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("message", response.json())
+        self.assertFalse(Skill.objects.filter(name="Go").exists())
+
+    def test_user_without_permission_gets_403(self):
+        self.client.force_login(User.objects.create_user("biasa", password="rahasia123"))
+        response = self.client.post(self.url, {"name": "Go", "category": self.category.id})
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Skill.objects.filter(name="Go").exists())
+
+    def test_invalid_input_returns_400_with_field_errors(self):
+        self.client.force_login(self.admin)
+        response = self.client.post(self.url, {"name": ""})
+        self.assertEqual(response.status_code, 400)
+        errors = response.json()["errors"]
+        self.assertIn("name", errors)
+        self.assertIn("category", errors)
+
+    def test_valid_input_returns_201_and_strips_tags(self):
+        self.client.force_login(self.admin)
+        response = self.client.post(
+            self.url, {"name": "<b>Go</b>", "category": self.category.id}
+        )
+        self.assertEqual(response.status_code, 201)
+        skill = Skill.objects.get(pk=response.json()["id"])
+        self.assertEqual(skill.name, "Go")
+
+    def test_get_not_allowed(self):
+        self.client.force_login(self.admin)
+        self.assertEqual(self.client.get(self.url).status_code, 405)
+
+    def test_post_without_csrf_token_rejected(self):
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.admin)
+        response = client.post(self.url, {"name": "Go", "category": self.category.id})
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Skill.objects.filter(name="Go").exists())
+
+
+class SkillsJsonTest(TestCase):
+    """Endpoint JSON skill: info star per pengguna dan pencarian ?name=."""
+
+    def setUp(self):
+        self.url = reverse("main:get_skills_json")
+        category = SkillCategory.objects.create(name="Testing Category")
+        self.skill = Skill.objects.create(name="Zigzag", category=category)
+        self.user = User.objects.create_user("biasa", password="rahasia123")
+        self.skill.starred_by.add(self.user)
+
+    def find_skill(self, response):
+        for category in response.json():
+            for skill in category["skills"]:
+                if skill["id"] == str(self.skill.id):
+                    return skill
+        return None
+
+    def test_anonymous_sees_star_count_but_not_starred(self):
+        skill = self.find_skill(self.client.get(self.url))
+        self.assertEqual(skill["star_count"], 1)
+        self.assertFalse(skill["is_starred"])
+
+    def test_logged_in_user_sees_own_star(self):
+        self.client.force_login(self.user)
+        self.assertTrue(self.find_skill(self.client.get(self.url))["is_starred"])
+
+    def test_search_by_name_drops_other_skills_and_empty_categories(self):
+        data = self.client.get(self.url, {"name": "zigz"}).json()
+        names = [s["name"] for c in data for s in c["skills"]]
+        self.assertEqual(names, ["Zigzag"])
+        self.assertTrue(all(c["skills"] for c in data))
