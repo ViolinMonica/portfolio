@@ -235,8 +235,8 @@ def get_skills_json(request):
 
 
 def show_skills(request):
-    """Render halaman skill berisi daftar kategori beserta skill di dalamnya."""
-    return render(request, "skill.html")
+    """Render kerangka halaman skill; isinya diambil lewat fetch() ke get_skills_json."""
+    return render(request, "skill.html", {"form": SkillForm()})
 
 @login_required(login_url="/login/")
 @permission_required("main.add_skill", raise_exception=True)
@@ -256,6 +256,32 @@ def create_skill(request):
         return redirect("main:show_skills")
 
     return render(request, "skills_form.html", {"form": form})
+
+@require_POST
+def create_skill_ajax(request):
+    """Tambah skill lewat AJAX dari modal di halaman skill.
+
+    Hak akses dicek di sini, bukan cuma lewat tombol yang disembunyikan di
+    template — request POST bisa dikirim langsung tanpa membuka halamannya.
+    Tidak memakai @login_required/@permission_required karena keduanya membalas
+    redirect/HTML, sedangkan pemanggilnya fetch() yang mengharapkan JSON.
+    """
+    if not request.user.has_perm("main.add_skill"):
+        return JsonResponse(
+            {"message": "Kamu tidak punya izin untuk menambahkan skill."},
+            status=403,
+        )
+
+    form = SkillForm(request.POST)
+    if form.is_valid():
+        skill = form.save()
+        return JsonResponse(
+            {"message": "Skill berhasil ditambahkan.", "id": str(skill.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
+
 
 @login_required(login_url="/login/")
 @permission_required("main.change_skill", raise_exception=True)

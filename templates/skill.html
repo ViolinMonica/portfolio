@@ -12,9 +12,10 @@
                 <div class="project-header">
                     <h1>Skills</h1>
                     {% if perms.main.add_skill %}
-                    <a href="{% url 'main:create_skill' %}" class="button project-add-button">
+                    <button type="button" class="button project-add-button" popovertarget="add-skill-modal">
                         <span aria-hidden="true">+</span> Add Skill
-                    </a>
+                    </button>
+                    {% include 'components/skill_form_modal.html' %}
                     {% endif %}
                 </div>
                 <select id="skill-filter" aria-label="Filter skill berdasarkan kategori">
@@ -152,7 +153,45 @@
         clearTimeout(searchTimer);
         searchTimer = setTimeout(() => fetchSkills(e.target.value.trim()), 300);
     });
+    const CREATE_SKILL_ENDPOINT = "{% url 'main:create_skill_ajax' %}";
+    const skillForm = document.getElementById('skill-form');
     
+    async function addSkill(event) {
+        event.preventDefault();
+        const submitButton = skillForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        
+        try {
+            // FormData ikut membawa field csrfmiddlewaretoken dari {% csrf_token %}
+            const response = await fetch(CREATE_SKILL_ENDPOINT, {
+                method: 'POST',
+                body: new FormData(skillForm),
+            });
+            const result = await response.json().catch(() => ({}));
+            
+            if (response.ok) {
+                skillForm.reset();
+                document.getElementById('add-skill-modal').hidePopover();
+                showToast('Berhasil', 'Skill baru berhasil ditambahkan!', 'success');
+                // Reset pencarian & isi ulang dropdown kategori (siapa tahu ada kategori baru)
+                document.getElementById('skill-search').value = '';
+                document.getElementById('skill-filter').length = 1;
+                fetchSkills();
+            } else {
+                const errorMessages = result.errors
+                ? Object.values(result.errors).flat().map(error => error.message)
+                : [result.message || `Terjadi kesalahan (status ${response.status}).`];
+                showToast('Gagal menambahkan skill', errorMessages.join(' '), 'error');
+            }
+        } catch (error) {
+            console.error('Error adding skill:', error);
+            showToast('Gagal menambahkan skill', 'Tidak bisa terhubung ke server. Coba lagi.', 'error');
+        } finally {
+            submitButton.disabled = false;
+        }
+    }
+    
+    if (skillForm) skillForm.addEventListener('submit', addSkill);
     fetchSkills();
 </script>
 <script src="/static/js/script.js"></script>
