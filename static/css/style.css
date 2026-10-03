@@ -348,6 +348,12 @@ h1, .brand {
    biar melebar penuh nutupin semua kolom grid, bukan ikut nyempit
    kayak 1 skill-category. (cek CSS section-header di atas kalau berubah) */
 
+/* Pembungkus hasil fetch() di skill.html: "contents" bikin tiap .skill-category
+   tetap jadi item grid .skills .container, bukan numpuk di satu sel. */
+#skill-container {
+    display: contents;
+}
+
 .skill-category {
     border: 1px solid var(--line);
     border-radius: var(--radius);

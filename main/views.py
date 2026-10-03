@@ -157,72 +157,80 @@ def delete_project(request, project_id):
 
 
 def get_skills_json(request):
-    """Endpoint JSON seluruh skill, terurut sesuai `Skill.Meta.ordering`.
-    Sama seperti `get_projects_json`, isinya format serializer Django
-    ("model"/"pk"/"fields") dan jadi satu-satunya sumber data skill: dipakai
-    `_categories_with_skills` untuk mengisi halaman, sekaligus bisa dibuka
-    langsung sebagai URL. Tidak ada parameter filter karena jumlah skill kecil
-    dan pengelompokannya dikerjakan di sisi Python. Daftar `fields` dibatasi eksplisit, bukan menyerialisasi seluruh model:
-    relasi `starred_by` menyimpan pengguna yang memberi star, dan tanpa
-    pembatasan ini endpoint publik ikut memuat id (atau username) mereka.   
+    """Endpoint JSON skill yang dikelompokkan per kategori, plus info star.
+
+    Disusun manual dengan JsonResponse supaya bisa menyisipkan `star_count` dan
+    `is_starred`. Total query tetap tiga (kategori, skill+jumlah star, id skill
+    yang di-star user), berapa pun jumlah skill-nya.
     """
-    return HttpResponse(
-        serializers.serialize(
-            "json",
-            Skill.objects.all(),
-            fields=("category", "name", "icon", "is_featured", "created_at"),
-        ),
-        content_type="application/json",
-    )
-
-
-def _categories_with_skills(request):
-    """Ambil skill lewat endpoint JSON, deserialisasi, lalu kelompokkan per kategori.
-    Helper privat — diawali underscore karena bukan view dan tidak dipetakan di
-    urls.py. Pengelompokan memakai satu dict `grouped` berkunci id kategori
-    supaya total query tetap dua saja; kalau tiap kategori memanggil
-    `category.skills.all()` sendiri-sendiri, jumlah query ikut bertambah
-    sebanyak kategori (masalah N+1). Hasilnya ditempelkan ke tiap kategori
-    sebagai atribut `skill_items` agar bisa langsung dilooping di template. 
-    Jumlah star dan status "sudah di-star" dihitung sekali di sini lewat dua
-    query agregat, lalu ditempelkan ke tiap objek. Kalau template memanggil
-    `skill.starred_by.count` sendiri-sendiri, jumlah query ikut bertambah
-    sebanyak skill yang dirender.
-    """
-    json_response = get_skills_json(request)
-    skills = [
-        wrapper.object
-        for wrapper in serializers.deserialize(
-            "json", json_response.content.decode("utf-8")
-        )
-    ]
-
-    categories = list(SkillCategory.objects.all())
-    grouped = {category.id: [] for category in categories}
-    star_counts = dict(
-        Skill.objects.annotate(total=Count("starred_by")).values_list("id", "total")
-    )
+    skills = Skill.objects.select_related("category").annotate(star_count=Count("starred_by"))
     starred_ids = (
         set(request.user.starred_skills.values_list("id", flat=True))
         if request.user.is_authenticated
         else set()
     )
+    categories = {
+        c.id: {"name": c.name, "slug": c.slug, "skills": []}
+        for c in SkillCategory.objects.all()
+    }
     for skill in skills:
-        skill.star_count = star_counts.get(skill.id, 0)
-        skill.is_starred = skill.id in starred_ids
-        grouped[skill.category_id].append(skill)
+        categories[skill.category_id]["skills"].append({
+            "id": str(skill.id),
+            "name": skill.name,
+            "icon": skill.icon,
+            "icon_kind": skill.icon_kind,
+            "is_featured": skill.is_featured,
+            "star_count": skill.star_count,
+            "is_starred": skill.id in starred_ids,
+        })
+    return JsonResponse(list(categories.values()), safe=False)
 
-    for category in categories:
-        category.skill_items = grouped[category.id]
 
-    return categories
+# def _categories_with_skills(request):
+#     """Ambil skill lewat endpoint JSON, deserialisasi, lalu kelompokkan per kategori.
+#     Helper privat — diawali underscore karena bukan view dan tidak dipetakan di
+#     urls.py. Pengelompokan memakai satu dict `grouped` berkunci id kategori
+#     supaya total query tetap dua saja; kalau tiap kategori memanggil
+#     `category.skills.all()` sendiri-sendiri, jumlah query ikut bertambah
+#     sebanyak kategori (masalah N+1). Hasilnya ditempelkan ke tiap kategori
+#     sebagai atribut `skill_items` agar bisa langsung dilooping di template. 
+#     Jumlah star dan status "sudah di-star" dihitung sekali di sini lewat dua
+#     query agregat, lalu ditempelkan ke tiap objek. Kalau template memanggil
+#     `skill.starred_by.count` sendiri-sendiri, jumlah query ikut bertambah
+#     sebanyak skill yang dirender.
+#     """
+#     json_response = get_skills_json(request)
+#     skills = [
+#         wrapper.object
+#         for wrapper in serializers.deserialize(
+#             "json", json_response.content.decode("utf-8")
+#         )
+#     ]
+
+#     categories = list(SkillCategory.objects.all())
+#     grouped = {category.id: [] for category in categories}
+#     star_counts = dict(
+#         Skill.objects.annotate(total=Count("starred_by")).values_list("id", "total")
+#     )
+#     starred_ids = (
+#         set(request.user.starred_skills.values_list("id", flat=True))
+#         if request.user.is_authenticated
+#         else set()
+#     )
+#     for skill in skills:
+#         skill.star_count = star_counts.get(skill.id, 0)
+#         skill.is_starred = skill.id in starred_ids
+#         grouped[skill.category_id].append(skill)
+
+#     for category in categories:
+#         category.skill_items = grouped[category.id]
+
+#     return categories
 
 
 def show_skills(request):
     """Render halaman skill berisi daftar kategori beserta skill di dalamnya."""
-    return render(
-        request, "skill.html", {"category_list": _categories_with_skills(request)}
-    )
+    return render(request, "skill.html")
 
 @login_required(login_url="/login/")
 @permission_required("main.add_skill", raise_exception=True)
