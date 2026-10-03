@@ -142,6 +142,18 @@ class SkillForm(ModelForm):
         self.fields["category"].required = False
         self.fields["category"].empty_label = "— pilih kategori —"
 
+    def clean_name(self):
+        name = strip_tags(self.cleaned_data["name"]).strip()
+        if not name:
+            raise ValidationError("Nama skill tidak boleh hanya berisi tag HTML.")
+        return name
+
+    def clean_icon(self):
+        return strip_tags(self.cleaned_data["icon"]).strip()
+
+    def clean_new_category(self):
+        return strip_tags(self.cleaned_data["new_category"]).strip()
+
     def clean(self):
         """Pastikan skill punya kategori, dari dropdown maupun ketikan baru.
 
