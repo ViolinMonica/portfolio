@@ -18,11 +18,13 @@
                     {% include 'components/skill_form_modal.html' %}
                     {% endif %}
                 </div>
-                <select id="skill-filter" aria-label="Filter skill berdasarkan kategori">
-                    <option value="all">All</option>
-                </select>
-                <input type="search" id="skill-search" class="project-search__input"
-                placeholder="Find skill based on skill's name" aria-label="Find skill based on skill's name">
+                <div class="project-search">
+                    <select id="skill-filter" aria-label="Filter skill berdasarkan kategori">
+                        <option value="all">All</option>
+                    </select>
+                    <input type="search" id="skill-search" class="project-search__input"
+                    placeholder="Find skill based on skill's name" aria-label="Find skill based on skill's name">
+                </div>
             </div>
             
             <div id="loading" class="empty-state hide"><p>Memuat skills...</p></div>
