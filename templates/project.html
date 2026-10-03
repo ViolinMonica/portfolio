@@ -85,7 +85,7 @@
         : '';
         
         const urlHtml = project.project_url 
-        ? `<a href="${project.project_url}" class="button">Lihat Project</a>`
+        ? `<a href="${esc(project.project_url)}" class="button">Lihat Project</a>`
         : '';
         
         // Dummy UUID digunakan untuk digantikan oleh ID asli dari data JSON
