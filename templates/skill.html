@@ -20,8 +20,10 @@
                 <select id="skill-filter" aria-label="Filter skill berdasarkan kategori">
                     <option value="all">All</option>
                 </select>
+                <input type="search" id="skill-search" class="project-search__input"
+                placeholder="Find skill based on skill's name" aria-label="Find skill based on skill's name">
             </div>
-
+            
             <div id="loading" class="empty-state hide"><p>Memuat skills...</p></div>
             <div id="error" class="empty-state hide"><p>Gagal memuat data skills. Silakan coba lagi.</p></div>
             <div id="empty" class="empty-state hide"><p>Belum ada skill.</p></div>
@@ -40,10 +42,10 @@
     const STAR_URL = "{% url 'main:toggle_skill_star' '00000000-0000-0000-0000-000000000000' %}";
     const EDIT_URL = "{% url 'main:edit_skill' '00000000-0000-0000-0000-000000000000' %}";
     const DELETE_URL = "{% url 'main:delete_skill' '00000000-0000-0000-0000-000000000000' %}";
-
+    
     // Data dari DB dimasukkan lewat innerHTML, jadi wajib di-escape (anti XSS)
     const esc = s => String(s).replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
-
+    
     const sections = {
         loading: document.getElementById('loading'),
         error: document.getElementById('error'),
@@ -53,14 +55,14 @@
     function show(name) {
         for (const [key, el] of Object.entries(sections)) el.classList.toggle('hide', key !== name);
     }
-
+    
     function iconHtml(skill) {
         if (skill.icon_kind === 'devicon') return `<i class="${esc(skill.icon)} colored"></i>`;
         if (skill.icon_kind === 'image') return `<img class="tool-icon" src="${esc(skill.icon)}" alt="logo ${esc(skill.name)}">`;
         if (skill.icon_kind === 'emoji') return `<span class="flag">${esc(skill.icon)}</span>`;
         return '';
     }
-
+    
     function skillHtml(skill) {
         const name = esc(skill.name);
         const star = IS_AUTH ? `
@@ -96,35 +98,61 @@
                 ${star}${edit}${del}
             </div>`;
     }
-
-    async function fetchSkills() {
+    
+    let skillsAbortController;
+    
+    async function fetchSkills(query = '') {
+        // Batalkan request lama supaya hasil yang telat datang tidak menimpa hasil terbaru
+        if (skillsAbortController) skillsAbortController.abort();
+        skillsAbortController = new AbortController();
+        
         show('loading');
         try {
-            const response = await fetch(SKILLS_ENDPOINT, { headers: { 'Accept': 'application/json' } });
+            const url = query ? `${SKILLS_ENDPOINT}?name=${encodeURIComponent(query)}` : SKILLS_ENDPOINT;
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json' },
+                signal: skillsAbortController.signal,
+            });
             if (!response.ok) throw new Error('Failed to fetch skills');
             const categories = await response.json();
-
-            if (categories.length === 0) return show('empty');
-
+            
+            if (categories.every(c => c.skills.length === 0)) {
+                sections.empty.querySelector('p').textContent =
+                query ? `Tidak ada skill dengan nama "${query}".` : 'Belum ada skill.';
+                return show('empty');
+            }
+            
+            // Opsi dropdown cukup diisi sekali (saat load pertama), biar pilihan user tidak ke-reset tiap cari
             const filter = document.getElementById('skill-filter');
-            filter.innerHTML = '<option value="all">All</option>' + categories
+            if (filter.options.length === 1) {
+                filter.innerHTML += categories
                 .map(c => `<option value="${esc(c.slug)}">${esc(c.name)}</option>`).join('');
-
+            }
+            
             sections.grid.innerHTML = categories.map(c => `
-                <div class="skill-category" data-category="${esc(c.slug)}">
-                    <h3 class="skill-category-title">${esc(c.name)}</h3>
-                    <div class="skill-list">
-                        ${c.skills.length ? c.skills.map(skillHtml).join('')
-                                          : '<p class="empty-state">Belum ada skill di kategori ini.</p>'}
-                    </div>
-                </div>`).join('');
+            <div class="skill-category" data-category="${esc(c.slug)}">
+                <h3 class="skill-category-title">${esc(c.name)}</h3>
+                <div class="skill-list">
+                    ${c.skills.length ? c.skills.map(skillHtml).join('')
+            : '<p class="empty-state">Belum ada skill di kategori ini.</p>'}
+                </div>
+            </div>`).join('');
             show('grid');
+            filter.dispatchEvent(new Event('change')); // terapkan ulang filter kategori ke hasil baru
         } catch (error) {
+            if (error.name === 'AbortError') return;
             console.error('Error loading skills:', error);
             show('error');
         }
     }
-
+    
+    // Debounce: request baru dikirim 300 ms setelah user berhenti mengetik
+    let searchTimer;
+    document.getElementById('skill-search').addEventListener('input', function (e) {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => fetchSkills(e.target.value.trim()), 300);
+    });
+    
     fetchSkills();
 </script>
 <script src="/static/js/script.js"></script>

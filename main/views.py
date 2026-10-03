@@ -163,12 +163,15 @@ def get_skills_json(request):
     `is_starred`. Total query tetap tiga (kategori, skill+jumlah star, id skill
     yang di-star user), berapa pun jumlah skill-nya.
     """
+    name_query = request.GET.get("name", "").strip()
     skills = Skill.objects.select_related("category").annotate(star_count=Count("starred_by"))
+    if name_query:
+        skills = skills.filter(name__icontains=name_query)
     starred_ids = (
-        set(request.user.starred_skills.values_list("id", flat=True))
-        if request.user.is_authenticated
-        else set()
-    )
+            set(request.user.starred_skills.values_list("id", flat=True))
+            if request.user.is_authenticated
+            else set()
+        )
     categories = {
         c.id: {"name": c.name, "slug": c.slug, "skills": []}
         for c in SkillCategory.objects.all()
@@ -183,7 +186,10 @@ def get_skills_json(request):
             "star_count": skill.star_count,
             "is_starred": skill.id in starred_ids,
         })
-    return JsonResponse(list(categories.values()), safe=False)
+    
+    # Saat mencari, kategori tanpa hasil tidak ikut dikirim
+    data = [c for c in categories.values() if c["skills"] or not name_query]
+    return JsonResponse(data, safe=False)
 
 
 # def _categories_with_skills(request):
