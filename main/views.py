@@ -192,48 +192,6 @@ def get_skills_json(request):
     return JsonResponse(data, safe=False)
 
 
-# def _categories_with_skills(request):
-#     """Ambil skill lewat endpoint JSON, deserialisasi, lalu kelompokkan per kategori.
-#     Helper privat — diawali underscore karena bukan view dan tidak dipetakan di
-#     urls.py. Pengelompokan memakai satu dict `grouped` berkunci id kategori
-#     supaya total query tetap dua saja; kalau tiap kategori memanggil
-#     `category.skills.all()` sendiri-sendiri, jumlah query ikut bertambah
-#     sebanyak kategori (masalah N+1). Hasilnya ditempelkan ke tiap kategori
-#     sebagai atribut `skill_items` agar bisa langsung dilooping di template. 
-#     Jumlah star dan status "sudah di-star" dihitung sekali di sini lewat dua
-#     query agregat, lalu ditempelkan ke tiap objek. Kalau template memanggil
-#     `skill.starred_by.count` sendiri-sendiri, jumlah query ikut bertambah
-#     sebanyak skill yang dirender.
-#     """
-#     json_response = get_skills_json(request)
-#     skills = [
-#         wrapper.object
-#         for wrapper in serializers.deserialize(
-#             "json", json_response.content.decode("utf-8")
-#         )
-#     ]
-
-#     categories = list(SkillCategory.objects.all())
-#     grouped = {category.id: [] for category in categories}
-#     star_counts = dict(
-#         Skill.objects.annotate(total=Count("starred_by")).values_list("id", "total")
-#     )
-#     starred_ids = (
-#         set(request.user.starred_skills.values_list("id", flat=True))
-#         if request.user.is_authenticated
-#         else set()
-#     )
-#     for skill in skills:
-#         skill.star_count = star_counts.get(skill.id, 0)
-#         skill.is_starred = skill.id in starred_ids
-#         grouped[skill.category_id].append(skill)
-
-#     for category in categories:
-#         category.skill_items = grouped[category.id]
-
-#     return categories
-
-
 def show_skills(request):
     """Render kerangka halaman skill; isinya diambil lewat fetch() ke get_skills_json."""
     return render(request, "skill.html", {"form": SkillForm()})
