@@ -55,6 +55,7 @@
     const BASE_PROJECTS_ENDPOINT = "{% url 'main:get_projects_json' %}";
     const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
     let projectsAbortController;
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
     
     // Elemen DOM
     const loadingState = document.getElementById('loading');

@@ -116,7 +116,6 @@ def get_projects_json(request):
     return JsonResponse(data, safe=False)
 
 
-
 def show_projects(request):
     """Tampilkan halaman proyek dari hasil deserialisasi endpoint JSON.
 
