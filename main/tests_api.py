@@ -174,8 +174,11 @@ class SkillEditorAPITest(APITestCase):
             self.client.force_authenticate(user=user)
             self.assertEqual(self.client.patch(self.detail_url, {"name": "X"}, format="json").status_code, 403)
             self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, 403)
+            self.assertEqual(self.client.delete(self.detail_url).status_code, 403)
         self.skill.refresh_from_db()
         self.assertEqual(self.skill.name, "Django")
+        self.assertFalse(Skill.objects.filter(name="FastAPI").exists())
+        self.assertTrue(Skill.objects.filter(pk=self.skill.id).exists())
 
     def test_owner_can_create_and_delete(self):
         self.client.force_authenticate(user=self.owner)
@@ -183,9 +186,89 @@ class SkillEditorAPITest(APITestCase):
         self.assertEqual(self.client.delete(self.detail_url).status_code, 204)
         self.assertFalse(Skill.objects.filter(pk=self.skill.id).exists())
 
+    def test_new_category_created_or_reused(self):
+        self.client.force_authenticate(user=self.owner)
+        payload = {"name": "PyTorch", "new_category": "<b>Machine Learning</b>"}
+        response = self.client.post(self.list_url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["category_name"], "Machine Learning")
+        self.assertNotIn("new_category", response.data)
+        # beda huruf besar-kecil tetap memakai kategori yang sama
+        payload = {"name": "Keras", "new_category": "machine learning"}
+        self.client.post(self.list_url, payload, format="json")
+        self.assertEqual(SkillCategory.objects.filter(name__iexact="machine learning").count(), 1)
+
+    def test_create_without_any_category_rejected(self):
+        self.client.force_authenticate(user=self.owner)
+        response = self.client.post(self.list_url, {"name": "Go"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("category", response.data)
+        self.assertFalse(Skill.objects.filter(name="Go").exists())
+
     def test_star_uses_is_authenticated_not_editor(self):
         self.assertEqual(self.client.post(self.star_url).status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.skill.starred_by.count(), 0)
         self.client.force_authenticate(user=self.visitor)
         response = self.client.post(self.star_url)
         self.assertTrue(response.data["is_starred"])
         self.assertEqual(response.data["star_count"], 1)
+        self.assertTrue(self.skill.starred_by.filter(pk=self.visitor.pk).exists())
+
+    def test_second_star_unstars(self):
+        self.client.force_authenticate(user=self.visitor)
+        self.client.post(self.star_url)
+        response = self.client.post(self.star_url)
+        self.assertFalse(response.data["is_starred"])
+        self.assertEqual(response.data["star_count"], 0)
+        self.assertFalse(self.skill.starred_by.exists())
+
+    def test_star_count_does_not_expose_account_data(self):
+        self.skill.starred_by.add(self.visitor)
+        data = self.client.get(self.detail_url).data
+        self.assertNotIn("starred_by", data)
+        self.assertNotIn(self.visitor.email or "@", str(data))
+
+    def test_validation_rejects_empty_and_tag_only_name(self):
+        self.client.force_authenticate(user=self.owner)
+        for name in ("", "   ", "<b></b>"):
+            response = self.client.post(self.list_url, {**self.payload, "name": name}, format="json")
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn("name", response.data)
+        response = self.client.patch(self.detail_url, {"name": "<script></script>"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Skill.objects.filter(category=self.category).count(), 1)
+        self.skill.refresh_from_db()
+        self.assertEqual(self.skill.name, "Django")
+
+    def test_validation_strips_tags(self):
+        self.client.force_authenticate(user=self.owner)
+        payload = {**self.payload, "name": "<b>Go</b>", "icon": "<i>🐹</i>"}
+        response = self.client.post(self.list_url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        skill = Skill.objects.get(pk=response.data["id"])
+        self.assertEqual((skill.name, skill.icon), ("Go", "🐹"))
+
+    def test_search_by_name(self):
+        # database test sudah berisi skill dari migrasi seed, jadi pakai nama yang unik
+        Skill.objects.create(name="Zyxlang", category=self.category)
+        names = [s["name"] for s in self.client.get(self.list_url, {"name": "ZYX"}).data]
+        self.assertEqual(names, ["Zyxlang"])
+        self.assertEqual(self.client.get(self.list_url, {"name": "zzz"}).data, [])
+
+    def test_missing_skill_returns_404(self):
+        missing = uuid.uuid4()
+        self.assertEqual(self.client.get(reverse("api:skill-detail", args=[missing])).status_code, 404)
+        self.client.force_authenticate(user=self.owner)
+        self.assertEqual(self.client.delete(reverse("api:skill-detail", args=[missing])).status_code, 404)
+        self.assertEqual(self.client.post(reverse("api:skill-star", args=[missing])).status_code, 404)
+
+    def test_session_write_without_csrf_is_rejected(self):
+        # force_authenticate melewati CSRF; .login() memakai session asli
+        client = APIClient(enforce_csrf_checks=True)
+        self.assertTrue(client.login(username="owner", password="test-password"))
+        response = client.post(self.list_url, self.payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(Skill.objects.filter(name="FastAPI").exists())
+        response = client.post(self.star_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(self.skill.starred_by.exists())
