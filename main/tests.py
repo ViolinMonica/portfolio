@@ -1,7 +1,7 @@
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Permission, User
 
 from main.context_processors import site_identity
 from main.models import Experience, Project, Skill, SkillCategory
@@ -196,6 +196,15 @@ class CreateSkillAjaxTest(TestCase):
 
     def test_user_without_permission_gets_403(self):
         self.client.force_login(User.objects.create_user("biasa", password="rahasia123"))
+        response = self.client.post(self.url, {"name": "Go", "category": self.category.id})
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Skill.objects.filter(name="Go").exists())
+
+    def test_editor_with_add_perm_still_gets_403(self):
+        # Meski grup Editor di DB masih punya add_skill, view tetap menolak.
+        editor = User.objects.create_user("editor", password="rahasia123")
+        editor.user_permissions.add(Permission.objects.get(codename="add_skill"))
+        self.client.force_login(editor)
         response = self.client.post(self.url, {"name": "Go", "category": self.category.id})
         self.assertEqual(response.status_code, 403)
         self.assertFalse(Skill.objects.filter(name="Go").exists())

@@ -196,7 +196,6 @@ def show_skills(request):
     return render(request, "skill.html", {"form": SkillForm()})
 
 @login_required(login_url="/login/")
-@permission_required("main.add_skill", raise_exception=True)
 def create_skill(request):
     """Tangani penambahan skill baru lewat SkillForm.
 
@@ -205,6 +204,11 @@ def create_skill(request):
     form yang sama; pembuatan kategori itu sendiri ditangani di
     `SkillForm.clean()`, bukan di view ini.
     """
+    # Tugas 6: hanya pemilik (superuser) yang boleh membuat, sama seperti API.
+    # Dicek lewat is_superuser, bukan has_perm, supaya tidak bergantung pada
+    # isi grup Editor di database.
+    if not request.user.is_superuser:
+        raise PermissionDenied
     form = SkillForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
@@ -223,7 +227,7 @@ def create_skill_ajax(request):
     Tidak memakai @login_required/@permission_required karena keduanya membalas
     redirect/HTML, sedangkan pemanggilnya fetch() yang mengharapkan JSON.
     """
-    if not request.user.has_perm("main.add_skill"):
+    if not request.user.is_superuser:
         return JsonResponse(
             {"message": "Kamu tidak punya izin untuk menambahkan skill."},
             status=403,
@@ -262,13 +266,14 @@ def edit_skill(request, skill_id):
     return render(request, "skills_form.html", {"form": form, "skill": skill})
 
 @login_required(login_url="/login/")
-@permission_required("main.delete_skill", raise_exception=True)
 def delete_skill(request, skill_id):
     """Hapus satu skill, lalu selalu kembali ke halaman skill.
 
     Sengaja dibuat sebentuk dengan `delete_project`: hanya POST yang
     benar-benar menghapus, request lain cuma diarahkan balik tanpa efek samping.
     """
+    if not request.user.is_superuser:
+        raise PermissionDenied
     skill = get_object_or_404(Skill, pk=skill_id)
 
     if request.method == "POST":
