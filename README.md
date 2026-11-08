@@ -132,40 +132,53 @@ Live di: https://violin-monica-portofolio.pws.cs.ui.ac.id
 
 ## Peran dan Hak Akses
 
-| Peran | Lihat skills | Star | Create & Update | Delete |
-|---|---|---|---|---|
-| Pengunjung (belum login) | ✅ | ❌ redirect ke login | ❌ redirect ke login | ❌ redirect ke login |
-| Pengguna terdaftar | ✅ | ✅ | ❌ 403 Forbidden | ❌ 403 Forbidden |
-| Editor (Django Group) | ✅ | ✅ | ✅ | ❌ 403 Forbidden |
-| Admin (superuser) | ✅ | ✅ | ✅ | ✅ |
+Berlaku sama di halaman web maupun di API `/api/v1/skills/` (sejak Tugas 6):
 
-Pembatasannya ditegakkan di sisi server.
-Tiap view skill yang mengubah data memakai dua decorator bertumpuk:
+| Peran | Lihat & cari | Star | Create | Update (PUT/PATCH) | Delete |
+|---|---|---|---|---|---|
+| Pengunjung (belum login) | ✅ | ❌ 403 | ❌ 403 | ❌ 403 | ❌ 403 |
+| Pengguna terdaftar | ✅ | ✅ | ❌ 403 | ❌ 403 | ❌ 403 |
+| Editor (Django Group) | ✅ | ✅ | ❌ 403 | ✅ | ❌ 403 |
+| Pemilik portofolio (superuser) | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-```python
-@login_required(login_url="/login/")
-@permission_required("main.change_skill", raise_exception=True)
-```
+Di view HTML lama, pengunjung yang belum login diarahkan ke halaman login,
+bukan 403, karena memakai `login_required`.
 
-Urutannya menentukan perilaku. login_required dievaluasi lebih dulu sehingga
-pengunjung anonim diarahkan ke halaman login, sedangkan pengguna yang sudah
-login tapi tidak berizin diteruskan ke permission_required dan menerima
-403 Forbidden berkat raise_exception=True. Kalau hanya permission_required
-yang dipakai, pengunjung anonim ikut menerima 403; kalau raise_exception
-dihilangkan, pengguna terdaftar malah dilempar ke halaman login padahal sudah
-login. Permission add_skill, change_skill, dan delete_skill tidak
-didefinisikan manual — Django membuatnya otomatis untuk tiap model.
+Cara membuat peran Editor: buka `/admin/` → Groups → buat grup bernama
+`Editor` dengan permission **`main | skill | Can change skill` saja**, lalu
+masukkan akun ke grup itu.
 
-Di template, tombol disembunyikan lewat {% if perms.main.add_skill %} dan
-seterusnya. Ini murni soal kerapian tampilan; yang benar-benar menahan akses
-tetap decorator di atas, karena URL-nya bisa diketik langsung.
+Pembatasannya ditegakkan di sisi server, di dua tempat:
 
-Sejak Tugas 5, tambah skill dilakukan lewat modal AJAX ke `create_skill_ajax`.
-View ini tidak memakai kedua decorator di atas karena keduanya membalas
-redirect atau halaman HTML, sementara pemanggilnya `fetch()` yang mengharapkan
-JSON. Sebagai gantinya izin dicek di dalam view dengan
-`request.user.has_perm("main.add_skill")`, dan pengunjung anonim maupun
-pengguna tanpa izin sama-sama menerima `403` berisi pesan JSON.
+- **API**: permission class `IsPortfolioOwnerOrEditorOrReadOnly` di
+  `main/permissions.py`. Method aman (GET/HEAD/OPTIONS) terbuka untuk semua,
+  superuser boleh semua method, dan anggota grup Editor hanya boleh PUT/PATCH.
+  Endpoint star memakai `IsAuthenticated`, dan akun pemberi star selalu
+  diambil dari `request.user`.
+- **View HTML lama**: `create_skill`, `create_skill_ajax`, dan `delete_skill`
+  mengecek `request.user.is_superuser`, bukan `has_perm`. Pada Tugas 4 grup
+  Editor sempat diberi `add_skill`. Dengan pengecekan di kode, aturannya tetap
+  konsisten dengan API meskipun isi grup di database berbeda-beda. `edit_skill`
+  tetap memakai `permission_required("main.change_skill")`.
+
+Di template, tombol Add dan Delete hanya dirender untuk superuser, sedangkan
+tombol Edit untuk pemilik `change_skill`. Ini hanya soal tampilan; yang
+benar-benar menahan akses tetap pengecekan di server, karena request bisa
+dikirim langsung tanpa membuka halamannya.
+
+### Endpoint API (Tugas 6)
+
+| Method | URL | Akses | Respons |
+|---|---|---|---|
+| GET | `/api/v1/skills/?name=<kata>` | semua | 200, daftar skill (pencarian opsional) |
+| POST | `/api/v1/skills/` | superuser | 201 / 400 / 403 |
+| GET | `/api/v1/skills/<uuid>/` | semua | 200 / 404 |
+| PUT, PATCH | `/api/v1/skills/<uuid>/` | superuser, Editor | 200 / 400 / 403 / 404 |
+| DELETE | `/api/v1/skills/<uuid>/` | superuser | 204 / 403 / 404 |
+| POST | `/api/v1/skills/<uuid>/star/` | sudah login | 200 (toggle star) / 403 / 404 |
+
+Browsable API bisa dibuka langsung di browser pada URL di atas. Login untuk
+Browsable API tersedia di `/api-auth/login/`.
 
 ---
 
@@ -255,6 +268,36 @@ Menambahkan unit test yang mencakup akses URL + template, data muncul di HTML, d
    kategori yang tetap berlaku saat mencari maupun setelah data ditambahkan,
    dan pembersihan partial `skill_pill.html` serta `skill_star.html` yang tidak
    terpakai lagi.
+
+- Minggu 6: Django REST Framework
+1. Membuat `SkillSerializer` (ModelSerializer) dengan `fields` eksplisit,
+   field read-only `star_count`, `is_starred`, `category_name`,
+   `category_slug`, dan `icon_kind`, serta validasi `validate_name` dan
+   `validate_icon` yang membersihkan input dengan `strip_tags`.
+2. Menerapkan `IsPortfolioOwnerOrEditorOrReadOnly` pada endpoint daftar dan
+   detail skill, dan `IsAuthenticated` pada endpoint star.
+3. Membuat API view berbasis fungsi `skill_list`, `skill_detail`, dan
+   `skill_star` dengan `@api_view` dan `SessionAuthentication`, lalu
+   mendaftarkannya di `main/api_urls.py` di bawah `/api/v1/skills/`.
+   Pencarian dari Tugas 5 dipindah ke parameter `?name=`.
+4. Mengubah halaman skill agar menampilkan, mencari, menambah, memberi star,
+   mengubah (modal edit dengan `PATCH`), dan menghapus skill lewat API tanpa
+   reload. Setiap request yang mengubah data membawa header `X-CSRFToken`,
+   dan pesan 400/403 dari API ditampilkan lewat toast.
+5. Menyesuaikan view lama: Editor tidak bisa lagi membuat atau menghapus
+   skill, supaya sama dengan aturan di API.
+6. Menambahkan test `APITestCase` untuk setiap peran, validasi input, star,
+   404, dan test `APIClient(enforce_csrf_checks=True)` + `.login()` yang
+   membuktikan request tanpa token CSRF ditolak. Test penolakan memeriksa isi
+   database, bukan hanya status HTTP.
+7. Pengembangan di luar instruksi: kategori baru bisa dibuat langsung dari
+   modal tambah skill lewat API. `SkillSerializer` punya field `write_only`
+   `new_category` yang mencari kategori dengan nama sama tanpa membedakan
+   huruf besar-kecil, dan membuat yang baru kalau belum ada. Kategori dibuat
+   di `validate()`, setelah semua field lain lolos validasi, sehingga tidak
+   ada kategori yatim seperti yang bisa terjadi di `SkillForm.clean()`.
+   Tombol star juga hanya merender ulang pill yang diklik dari respons API,
+   bukan seluruh daftar.
 
 ## Pertanyaan Reflektif
 ### Tugas 1
@@ -425,6 +468,42 @@ Cara saya menanganinya:
 
 Kedua lapisan ini tetap saya pakai bersamaan. `strip_tags` hanya membersihkan data yang masuk lewat form, sementara data lama atau data yang masuk lewat jalur lain seperti halaman admin tidak ikut dibersihkan. Karena itu escaping di sisi klien tetap dibutuhkan sebagai pertahanan terakhir tepat sebelum data ditampilkan.
 
+### Tugas 6
+1. Jelaskan apa yang dimaksud dengan REST dan mengapa mengembalikan JSON saja belum cukup untuk menyebut sebuah API sebagai RESTful! Jelaskan pula perbedaan PUT dan PATCH beserta contoh kapan masing-masing sebaiknya digunakan!
+REST (Representational State Transfer) adalah gaya arsitektur untuk sistem berbasis web. Datanya dipandang sebagai resource yang diakses lewat URI dan dimanipulasi dengan metode HTTP standar. Prinsip utamanya antara lain stateless, cacheable, client–server, dan uniform interface. Hanya dengan mengembalikan JSON, sebuah API belum cukup disebut sebagai RESTful karena JSON cuma format data. Sebuah API baru disebut RESTful kalau mengikuti prinsip-prinsip yang disebutkan pada definisi REST pada awal kalimat. Contoh yang tidak RESTful walaupun pakai JSON:
+```
+POST /getUser   → selalu 200 OK, error ditaruh di body
+Versi RESTful:
+GET /users/5    → 200 OK atau 404 Not Found
+```
+URI berupa kata benda (resource), metode HTTP dan status code dipakai sesuai maknanya, dan idealnya ada link ke aksi berikutnya (HATEOAS)
+
+PUT vs PATCH:
+PUT harus mengirim semua field wajib; kalau ada yang kurang, serializer menolak dengan 400. Cocok dipakai untuk form edit yang mengirim semua field sekaligus, misalnya mengedit skill lengkap (nama, kategori, icon, unggulan).
+
+PATCH mengubah sebagian resource saja, cukup kirim field yang berubah. PATCH memakai partial=True, jadi field yang tidak dikirim tetap. Cocok untuk mengubah status pesanan, misalnya {"status": "shipped"}.
+
+Singkatnya, PUT berarti “ganti semuanya”, PATCH berarti “ubah yang perlu aja”.
+2. Jelaskan peran serializer pada Django REST Framework! Apa keuntungannya dibandingkan merakit dictionary secara manual dengan JsonResponse seperti pada Tutorial 05?
+Serializer di DRF bertugas mengubah objek model atau queryset menjadi tipe data Python yang siap dirender ke JSON (serialisasi). Serializer juga bisa mengubah data dari request jadi objek sekaligus divalidasi (deserialisasi).
+Keuntungan dibanding cara manual:
+
+- Lebih ringkas dan tidak berulang: Field cukup didefinisikan sekali, dan ModelSerializer membacanya otomatis dari model. Tidak perlu menulis dict satu per satu di setiap view.
+- Validasi bawaan: serializer.is_valid() mengecek tipe data, field wajib, dan panjang maksimum sesuai definisi model. Pesan errornya juga rapi. Dengan JsonResponse, semua validasi harus ditulis sendiri.
+- Dua arah: Serializer yang sama bisa dipakai untuk membaca data (GET) dan menyimpan data (POST/PUT/PATCH lewat .save()).
+- Konsisten dan mudah dirawat: Kalau model berubah, cukup ubah serializer-nya, tidak perlu mencari setiap dict manual di banyak view.
+- Menangani kasus rumit: Relasi (nested serializer, foreign key), field hasil hitungan (SerializerMethodField), dan field khusus baca/tulis (read_only, write_only) sudah didukung.
+- Terintegrasi dengan ekosistem DRF: Serializer langsung bisa dipakai bersama generic views, ViewSet, pagination, dan browsable API.
+
+3. Jelaskan perbedaan autentikasi dan otorisasi pada Django REST Framework! Mengapa hak akses harus diperiksa dengan permission class di server, bukan hanya dengan menyembunyikan tombol di template?
+Autentikasi: memastikan identitas pengirim request (request.user) lewat authentication class seperti Session, Token, atau JWT. Jika gagal, responsnya 401 Unauthorized (Secara umum responsnya 401, tapi karena proyek ini hanya memakai SessionAuthentication, DRF membalas 403 untuk pengunjung yang belum login.)
+Otorisasi: menentukan apakah user tersebut berhak melakukan aksi tertentu, lewat permission class seperti IsAuthenticated, IsAdminUser, atau permission custom. Jika tidak berhak, responsnya 403 Forbidden.
+
+Alasan mengapa harus memeriksa hak ases dengan permission class di server daripada sekadar menyembunyikan tombol di template adalah untuk mencegah client mengakses hal yang sebenarnya tidak boleh diakses. Sebuah endpoint  tetap bisa diakses langsung lewat curl, Postman, atau console browser walaupun tidak ada tombol untuk mengakses endpoint tersebut di template. 
+
+4. Jelaskan mengapa permintaan yang mengubah data tetap memerlukan token CSRF ketika API memakai SessionAuthentication! Mengapa test yang memakai force_authenticate tidak cukup untuk membuktikan bahwa perlindungan CSRF berjalan?
+Permintaan yang mengubah data tetap perlu CSRF token karena SessionAuthentication memakai cookie dan browser mengirim cookie secara otomatis, termasuk untuk request yang dipicu dari situs lain. Tanpa CSRF token, situs berbahaya bisa mengirim POST/PUT/DELETE atas nama user yang sedang login. CSRF token harus dikirim secara eksplisit dan tidak bisa dibaca situs lain sehingga request palsu akan ditolak. Tes yang memakai force_authenticate tidak cukup untuk membuktikan bahwa perlindungan CSRF berjalan karena force_authenticate melewati SessionAuthentication sehingga pengecekan CSRF tidak pernah dijalankan. APIClient juga menonaktifkan CSRF secara default. Akibatnya test tetap lolos walaupun perlindungan CSRF tidak berfungsi.
+
 ## AI Disclosure
 ### Tugas 1
 Saya menggunakan Claude (Anthropic) sebagai asisten belajar selama mengerjakan Tugas 1, dengan strategi utama yaitu meminta penjelasan konsep dan hint/referensi terlebih dahulu untuk kemudian dicoba dikulik dan diketik kodenya sendiri.  
@@ -462,7 +541,7 @@ Bagian yang dibantu AI:
 
 Keterbatasan AI: draf test dari AI awalnya tidak sesuai instruksi, sehingga saya cocokkan manual dengan checklist tugas, cari kasus yang belum tercover, lalu minta untuk kembali direvisi dan diverifikasi.
 
-Log chat AI: https://claude.ai/share/2ab69e56-a51f-4707-b00c-f920fd841191, hhttps://claude.ai/share/9d5bfe8b-266d-4db3-b64c-e9e756f1ddf7
+Log chat AI: https://claude.ai/share/2ab69e56-a51f-4707-b00c-f920fd841191, https://claude.ai/share/9d5bfe8b-266d-4db3-b64c-e9e756f1ddf7
 
 ### Tugas 3
 Saya memakai Claude (Anthropic) lewat Claude Code di terminal sebagai asisten selama Tugas 3. Strategi prompting yang saya pakai: menyuruh AI membaca kode yang sudah ada dulu sebelum menyarankan apa pun, meminta satu perubahan kecil per prompt supaya gampang saya review, dan menanyakan alasan di balik tiap saran desain model (misalnya kenapa `on_delete=PROTECT` dan bukan `CASCADE`) sebelum kodenya saya pakai. Tiap keluaran AI tetap saya baca ulang dan cocokkan dengan checklist tugas, dan yang tidak cocok saya revert atau perbaiki manual seperti tercatat di bagian keterbatasan di bawah.
@@ -587,3 +666,53 @@ Keterbatasan AI dan perbaikan manual yang saya lakukan:
 
 Log chat AI: https://drive.google.com/file/d/1mdrtWDa34Tm1raVyu_LBwfNKOoSMmBEF/view?usp=sharing
 
+### Tugas 6
+Saya memakai Claude (Anthropic) lewat Claude Code di VS Code. Strategi
+prompting: saya meminta AI membaca halaman tugas dan kode saya, lalu
+membuat daftar apa saja yang belum terpenuhi beserta targetnya untuk nilai 4.
+Setelah itu saya mengerjakannya per poin. Untuk sebagian poin (star dan
+delete lewat `fetch()`), saya meminta penjelasan dan potongan kode, lalu
+menerapkannya sendiri. Untuk poin lain (modal edit, `new_category`, dan test),
+kodenya ditulis AI lalu saya cek di browser.
+
+Bagian yang dibantu AI:
+
+- Audit kode terhadap checklist dan rubrik Tugas 6
+- Pengecekan `is_superuser` di view lama supaya Editor tidak bisa membuat
+  atau menghapus skill
+- Pemindahan star, delete, tambah, dan pencarian di `skill.html` ke API,
+  termasuk helper `getCookie` dan `writeSkill` (disalin dari pola
+  `project.html` di Tutorial 07)
+- Modal edit dengan `PATCH`
+- Field `new_category` di `SkillSerializer`
+- Test API tambahan (validasi, CSRF, 404, unstar, kategori baru)
+- Poin-poin untuk pertanyaan reflektif (jawabannya saya tulis sendiri)
+- Pesan commit dan bagian README ini
+
+Keterbatasan AI dan perbaikan manual yang saya lakukan:
+
+- Saran pertama AI untuk mencabut izin `add_skill` dari grup Editor adalah
+  data migration. Ternyata grup Editor tidak pernah dibuat lewat kode, dan
+  PWS sedang mati sehingga revoke manual juga tidak bisa. Saya memilih
+  memindahkan aturannya ke kode (`is_superuser`) supaya tidak bergantung
+  pada isi database.
+- Saat saya menerapkan potongan kode dari AI, beberapa kali ada bagian yang
+  terlewat atau ikut terhapus (backtick yang hilang, baris
+  `response.json()` yang terhapus, field yang belum masuk ke `fields`). Test
+  Python tetap lulus untuk bug JavaScript, jadi bug itu baru ketemu setelah
+  kodenya dicek ulang. Pelajarannya: test backend tidak membuktikan halaman
+  berjalan, dan halaman tetap harus dicoba di browser.
+- AI menemukan bahwa cookie CSRF untuk pengguna biasa ternyata hanya
+  ter-set karena `{% csrf_token %}` kebetulan ada di dalam komentar
+  JavaScript. Saya menambahkan `{% csrf_token %}` secara eksplisit di
+  template.
+- Test pertama yang ditulis AI gagal karena tidak memperhitungkan bahwa
+  migrasi seed `0008_seed_skills` ikut mengisi database test (termasuk skill
+  bernama "Django"). Test-nya disesuaikan agar hanya menghitung skill di
+  kategori test.
+- Masih ada ketidakkonsistenan yang saya sadari: API mengenali Editor dari
+  nama grup, sedangkan `edit_skill` di view lama memakai permission
+  `change_skill`. Selama grup Editor diberi `change_skill` sesuai instruksi
+  di atas, hasilnya sama.
+
+Log chat AI: https://drive.google.com/file/d/1HUAKQ5bCWOJafD3VlRdu7xkCYSUq5q2-/view?usp=sharing
