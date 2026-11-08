@@ -5,13 +5,14 @@
 {% endblock meta %}
 {% block content %}
 <main>
+    {% csrf_token %}
     <section class="skills">
         <div class="container">
             <div class="section-header">
                 <p class="hero-kicker">What I am capable of</p>
                 <div class="project-header">
                     <h1>Skills</h1>
-                    {% if perms.main.add_skill %}
+                    {% if user.is_superuser %}
                     <button type="button" class="button project-add-button" popovertarget="add-skill-modal">
                         <span aria-hidden="true">+</span> Add Skill
                     </button>
@@ -35,20 +36,86 @@
     </section>
 </main>
 
+{% if perms.main.change_skill %}
+<div id="edit-skill-modal" class="project-form-modal" popover="auto" role="dialog"
+     aria-modal="true" aria-labelledby="edit-skill-modal-title">
+    <button type="button" class="project-form-modal__backdrop"
+            popovertarget="edit-skill-modal" popovertargetaction="hide"
+            aria-label="Tutup form edit skill"></button>
+    <div class="project-form-modal__content">
+        <button type="button" class="project-form-modal__close"
+                popovertarget="edit-skill-modal" popovertargetaction="hide"
+                aria-label="Tutup form edit skill">×</button>
+        <h2 id="edit-skill-modal-title">Edit Skill</h2>
+        <form id="edit-skill-form" class="project-form">
+            <input type="hidden" name="id">
+            <div class="form-group">
+                <label for="edit-name">Nama Skill</label>
+                <input type="text" id="edit-name" name="name" maxlength="100" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-category">Kategori</label>
+                <select id="edit-category" name="category" required>
+                    {% for c in form.fields.category.queryset %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit-icon">Icon</label>
+                <input type="text" id="edit-icon" name="icon" maxlength="200">
+            </div>
+            <div class="form-group">
+                <label><input type="checkbox" name="is_featured"> Tampilkan sebagai unggulan</label>
+            </div>
+            <div class="project-form-modal__actions">
+                <button type="button" class="button button-secondary"
+                        popovertarget="edit-skill-modal" popovertargetaction="hide">Batal</button>
+                <button type="submit" class="button">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
 <script>
-    const SKILLS_ENDPOINT = "{% url 'main:get_skills_json' %}";
+    const SKILLS_ENDPOINT = "{% url 'api:skill-list' %}";
     const IS_AUTH = {{ user.is_authenticated|yesno:"true,false" }};
     const CAN_EDIT = {{ perms.main.change_skill|yesno:"true,false" }};
-    const CAN_DELETE = {{ perms.main.delete_skill|yesno:"true,false" }};
+    const CAN_DELETE = {{ user.is_superuser|yesno:"true,false" }};
     const DUMMY = "00000000-0000-0000-0000-000000000000";
     const urlFor = (tpl, id) => tpl.replace(DUMMY, id);
-    const STAR_URL = "{% url 'main:toggle_skill_star' '00000000-0000-0000-0000-000000000000' %}";
-    const EDIT_URL = "{% url 'main:edit_skill' '00000000-0000-0000-0000-000000000000' %}";
-    const DELETE_URL = "{% url 'main:delete_skill' '00000000-0000-0000-0000-000000000000' %}";
+    const STAR_URL = "{% url 'api:skill-star' '00000000-0000-0000-0000-000000000000' %}";
+    const DETAIL_URL = "{% url 'api:skill-detail' '00000000-0000-0000-0000-000000000000' %}";
     
     // Data dari DB dimasukkan lewat innerHTML, jadi wajib di-escape (anti XSS)
     const esc = s => String(s).replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
     
+    function getCookie(name) {
+        const prefix = `${name}=`;
+        const c = document.cookie.split(';').map(v => v.trim()).find(v => v.startsWith(prefix));
+        return c ? decodeURIComponent(c.slice(prefix.length)) : null;
+    }
+
+    async function writeSkill(url, method, payload) {
+        const response = await fetch(url, {
+            method,
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: payload === undefined ? undefined : JSON.stringify(payload),
+        });
+        if (response.status === 204) return null;              // DELETE berhasil
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {                                    // 400 / 403 / 404
+            const msg = Object.values(data).flat().filter(v => typeof v === 'string').join(' ');
+            throw new Error(msg || `Request failed (HTTP ${response.status}).`);
+        }
+        return data;
+    }
+
     const sections = {
         loading: document.getElementById('loading'),
         error: document.getElementById('error'),
@@ -69,32 +136,27 @@
     function skillHtml(skill) {
         const name = esc(skill.name);
         const star = IS_AUTH ? `
-            <form method="post" action="${urlFor(STAR_URL, skill.id)}" class="skill-action-form">
-                {% csrf_token %}
-                <button type="submit" class="skill-action skill-action--star${skill.is_starred ? ' is-starred' : ''}"
-                        title="${skill.is_starred ? 'Batalkan star' : 'Beri star'} ${name}"
-                        aria-pressed="${skill.is_starred}">
-                    <span aria-hidden="true">${skill.is_starred ? '★' : '☆'}</span>
-                    <span class="star-count">${skill.star_count}</span>
-                </button>
-            </form>` : '';
+        <button type="button" data-action="star" data-id="${skill.id}"
+                class="skill-action skill-action--star${skill.is_starred ? ' is-starred' : ''}"
+                title="${skill.is_starred ? 'Batalkan star' : 'Beri star'} ${name}"
+                aria-pressed="${skill.is_starred}">
+            <span aria-hidden="true">${skill.is_starred ? '★' : '☆'}</span>
+            <span class="star-count">${skill.star_count}</span>
+        </button>` : '';
         const edit = CAN_EDIT ? `
-            <a href="${urlFor(EDIT_URL, skill.id)}" class="skill-action" title="Edit ${name}" aria-label="Edit ${name}">
+            <button type="button" data-action="edit" data-id="${skill.id}" class="skill-action" title="Edit ${name}" aria-label="Edit ${name}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                 </svg>
-            </a>` : '';
+            </button>` : '';
         const del = CAN_DELETE ? `
-            <form method="post" action="${urlFor(DELETE_URL, skill.id)}" class="skill-action-form"
-                  data-name="${name}" onsubmit="return confirm('Hapus ' + this.dataset.name + '?');">
-                {% csrf_token %}
-                <button type="submit" class="skill-action skill-action--danger" title="Hapus ${name}" aria-label="Hapus ${name}">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M3 6h18" /><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
-                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6" />
-                    </svg>
-                </button>
-            </form>` : '';
+            <button type="button" data-action="delete" data-id="${skill.id}" data-name="${name}"
+            class="skill-action skill-action--danger" title="Hapus ${name}" aria-label="Hapus ${name}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 6h18" /><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6M14 11v6" />
+                </svg>
+            </button>` : '';
         return `
             <div class="skill-item">
                 <span class="skill-pill${skill.is_featured ? ' skill-pill--featured' : ''}">${iconHtml(skill)} ${name}</span>
@@ -117,8 +179,14 @@
                 signal: skillsAbortController.signal,
             });
             if (!response.ok) throw new Error('Failed to fetch skills');
-            const categories = await response.json();
-            
+            const skills = await response.json();      
+            const groups = new Map();
+            for (const s of skills) {
+                if (!groups.has(s.category_slug)) groups.set(s.category_slug, { name: s.category_name, slug: s.category_slug, skills: [] });
+                groups.get(s.category_slug).skills.push(s);
+            }
+            const categories = [...groups.values()];
+
             if (categories.every(c => c.skills.length === 0)) {
                 sections.empty.querySelector('p').textContent =
                 query ? `Tidak ada skill dengan nama "${query}".` : 'Belum ada skill.';
@@ -155,45 +223,92 @@
         clearTimeout(searchTimer);
         searchTimer = setTimeout(() => fetchSkills(e.target.value.trim()), 300);
     });
-    const CREATE_SKILL_ENDPOINT = "{% url 'main:create_skill_ajax' %}";
     const skillForm = document.getElementById('skill-form');
     
     async function addSkill(event) {
         event.preventDefault();
         const submitButton = skillForm.querySelector('button[type="submit"]');
         submitButton.disabled = true;
-        
         try {
-            // FormData ikut membawa field csrfmiddlewaretoken dari {% csrf_token %}
-            const response = await fetch(CREATE_SKILL_ENDPOINT, {
-                method: 'POST',
-                body: new FormData(skillForm),
+            const fields = new FormData(skillForm);
+            await writeSkill(SKILLS_ENDPOINT, 'POST', {
+                name: fields.get('name'),
+                category: fields.get('category'),
+                icon: fields.get('icon'),
+                is_featured: fields.get('is_featured') === 'on',
+                new_category: fields.get('new_category'),
             });
-            const result = await response.json().catch(() => ({}));
-            
-            if (response.ok) {
-                skillForm.reset();
-                document.getElementById('add-skill-modal').hidePopover();
-                showToast('Success', 'New skill is successfully added!', 'success');
-                // Reset pencarian & isi ulang dropdown kategori (siapa tahu ada kategori baru)
-                document.getElementById('skill-search').value = '';
-                document.getElementById('skill-filter').length = 1;
-                fetchSkills();
-            } else {
-                const errorMessages = result.errors
-                ? Object.values(result.errors).flat().map(error => error.message)
-                : [result.message || `Error (status ${response.status}).`];
-                showToast('Failed to add skill', errorMessages.join(' '), 'error');
-            }
+            skillForm.reset();
+            document.getElementById('add-skill-modal').hidePopover();
+            showToast('Success', 'New skill is successfully added!', 'success');
+            document.getElementById('skill-search').value = '';
+            document.getElementById('skill-filter').length = 1;
+            fetchSkills();
         } catch (error) {
-            console.error('Error adding skill:', error);
-            showToast('Failed to add skill', 'Can not connect to the server. Try again.', 'error');
+            showToast('Failed to add skill', error.message, 'error');   // pesan 400/403 dari API
         } finally {
             submitButton.disabled = false;
         }
     }
     
     if (skillForm) skillForm.addEventListener('submit', addSkill);
+    sections.grid.addEventListener('click', async (e) => {
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+        const item = btn.closest('.skill-item');
+        btn.disabled = true;
+        try {
+            if (btn.dataset.action === 'star') {
+                const skill = await writeSkill(urlFor(STAR_URL, btn.dataset.id), 'POST');
+                item.outerHTML = skillHtml(skill);
+            } else if (btn.dataset.action === 'edit') {
+                const skill = await writeSkill(urlFor(DETAIL_URL, btn.dataset.id), 'GET');
+                const f = editForm.elements;
+                f.id.value = skill.id;
+                f.name.value = skill.name;
+                if (![...f.category.options].some(o => o.value === skill.category)) {
+                    f.category.add(new Option(skill.category_name, skill.category));
+                }
+                f.category.value = skill.category;
+                f.icon.value = skill.icon;
+                f.is_featured.checked = skill.is_featured;
+                document.getElementById('edit-skill-modal').showPopover();
+            } else if (btn.dataset.action === 'delete') {
+                if (!confirm(`Hapus ${btn.dataset.name}?`)) return;
+                await writeSkill(urlFor(DETAIL_URL, btn.dataset.id), 'DELETE');
+                item.remove();
+                showToast('Success', 'Skill berhasil dihapus.', 'success');
+            }
+        } catch (err) {
+            showToast('Gagal', err.message, 'error'); 
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    const editForm = document.getElementById('edit-skill-form');
+    if (editForm) editForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const submitButton = editForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        const f = editForm.elements;
+        try {
+            await writeSkill(urlFor(DETAIL_URL, f.id.value), 'PATCH', {
+                name: f.name.value,
+                category: f.category.value,
+                icon: f.icon.value,
+                is_featured: f.is_featured.checked,
+            });
+            document.getElementById('edit-skill-modal').hidePopover();
+            showToast('Success', 'Skill berhasil diperbarui.', 'success');
+            fetchSkills(document.getElementById('skill-search').value.trim());
+        } catch (error) {
+            showToast('Failed to update skill', error.message, 'error');   // 400 / 403 dari API
+        } finally {
+            submitButton.disabled = false;
+        }
+    });
+
     fetchSkills();
 </script>
 <script src="/static/js/script.js"></script>
