@@ -6,9 +6,9 @@ from rest_framework.decorators import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from main.models import Project, Skill
+from main.models import Experience, Project, Skill
 from main.permissions import IsPortfolioOwnerOrEditorOrReadOnly, IsPortfolioOwnerOrReadOnly
-from main.serializers import ProjectSerializer, SkillSerializer
+from main.serializers import ExperienceSerializer, ProjectSerializer, SkillSerializer
 
 
 @api_view(["GET", "HEAD", "POST"])
@@ -118,3 +118,36 @@ def api_logout(request):
     if request.auth is not None:
         request.auth.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["GET", "HEAD", "POST"])
+@permission_classes([IsPortfolioOwnerOrReadOnly])
+def experience_list(request):
+    """GET publik (terbaru dulu); POST hanya pemilik portofolio (superuser)."""
+    if request.method in ("GET", "HEAD"):
+        experiences = Experience.objects.order_by("-started_at", "id")
+        return Response(ExperienceSerializer(experiences, many=True).data)
+
+    serializer = ExperienceSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET", "HEAD", "PUT", "PATCH", "DELETE"])
+@permission_classes([IsPortfolioOwnerOrReadOnly])
+def experience_detail(request, experience_id):
+    experience = get_object_or_404(Experience, pk=experience_id)
+    if request.method in ("GET", "HEAD"):
+        return Response(ExperienceSerializer(experience).data)
+
+    if request.method == "DELETE":
+        experience.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    serializer = ExperienceSerializer(
+        experience, data=request.data, partial=request.method == "PATCH",
+    )
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data)
