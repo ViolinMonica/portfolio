@@ -33,6 +33,21 @@ class ProjectAPITest(APITestCase):
         self.assertNotIn("fields", response.data[0])
         self.assertEqual(self.client.get(self.detail_url).status_code, status.HTTP_200_OK)
 
+    def test_token_login_create_and_logout(self):
+        response = self.client.post(
+            reverse("api:api_token_auth"),
+            {"username": "owner", "password": "test-password"}, format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {response.data['token']}")
+
+        response = self.client.post(self.list_url, self.payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        logout_url = reverse("api:api_logout")
+        self.assertEqual(self.client.post(logout_url).status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(self.client.post(logout_url).status_code, status.HTTP_401_UNAUTHORIZED)
+
     def test_search_and_empty_results(self):
         response = self.client.get(self.list_url, {"title": "PORT"})
         self.assertEqual(len(response.data), 1)
@@ -44,11 +59,12 @@ class ProjectAPITest(APITestCase):
         self.assertEqual(self.client.get(url).status_code, status.HTTP_404_NOT_FOUND)
 
     def test_guest_and_visitor_cannot_write(self):
-        for user in (None, self.visitor):
+        # Guest gets 401 (TokenAuthentication adds WWW-Authenticate), visitor gets 403.
+        for user, code in ((None, 401), (self.visitor, 403)):
             self.client.force_authenticate(user=user)
-            self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, 403)
-            self.assertEqual(self.client.patch(self.detail_url, {"title": "Changed"}, format="json").status_code, 403)
-            self.assertEqual(self.client.delete(self.detail_url).status_code, 403)
+            self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, code)
+            self.assertEqual(self.client.patch(self.detail_url, {"title": "Changed"}, format="json").status_code, code)
+            self.assertEqual(self.client.delete(self.detail_url).status_code, code)
         self.assertEqual(Project.objects.count(), 1)
         self.project.refresh_from_db()
         self.assertEqual(self.project.title, "Portfolio")
@@ -87,7 +103,7 @@ class ProjectAPITest(APITestCase):
         self.assertFalse(Project.objects.filter(pk=self.project.id).exists())
 
     def test_star_requires_login_and_toggles(self):
-        self.assertEqual(self.client.post(self.star_url).status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.client.post(self.star_url).status_code, status.HTTP_401_UNAUTHORIZED)
         self.client.force_authenticate(user=self.visitor)
         response = self.client.post(self.star_url)
         self.assertTrue(response.data["is_starred"])
@@ -170,11 +186,12 @@ class SkillEditorAPITest(APITestCase):
         self.assertEqual(Skill.objects.filter(category=self.category).count(), 1)
 
     def test_guest_and_visitor_cannot_write(self):
-        for user in (None, self.visitor):
+        # Guest gets 401 (TokenAuthentication adds WWW-Authenticate), visitor gets 403.
+        for user, code in ((None, 401), (self.visitor, 403)):
             self.client.force_authenticate(user=user)
-            self.assertEqual(self.client.patch(self.detail_url, {"name": "X"}, format="json").status_code, 403)
-            self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, 403)
-            self.assertEqual(self.client.delete(self.detail_url).status_code, 403)
+            self.assertEqual(self.client.patch(self.detail_url, {"name": "X"}, format="json").status_code, code)
+            self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, code)
+            self.assertEqual(self.client.delete(self.detail_url).status_code, code)
         self.skill.refresh_from_db()
         self.assertEqual(self.skill.name, "Django")
         self.assertFalse(Skill.objects.filter(name="FastAPI").exists())
@@ -206,7 +223,7 @@ class SkillEditorAPITest(APITestCase):
         self.assertFalse(Skill.objects.filter(name="Go").exists())
 
     def test_star_uses_is_authenticated_not_editor(self):
-        self.assertEqual(self.client.post(self.star_url).status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.client.post(self.star_url).status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(self.skill.starred_by.count(), 0)
         self.client.force_authenticate(user=self.visitor)
         response = self.client.post(self.star_url)
