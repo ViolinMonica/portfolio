@@ -1,7 +1,9 @@
 from django.utils.html import strip_tags
 from rest_framework import serializers
 
-from main.models import Project, Skill, SkillCategory
+from django.utils import timezone
+
+from main.models import Experience, Project, Skill, SkillCategory
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -105,3 +107,40 @@ class SkillSerializer(serializers.ModelSerializer):
         if request is None or not request.user.is_authenticated:
             return False
         return request.user in obj.starred_by.all()
+
+
+class ExperienceSerializer(serializers.ModelSerializer):
+    """Experience untuk aplikasi Flutter (Tugas 9).
+
+    `started_at` diisi Django (`auto_now_add`) dan `thumbnail` belum dikirim
+    lewat API karena aplikasi mobile belum mendukung upload file.
+    """
+
+    is_ongoing = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Experience
+        fields = [
+            "id", "title", "description", "category",
+            "started_at", "ended_at", "is_ongoing",
+        ]
+        read_only_fields = ["id", "started_at"]
+
+    def validate_title(self, value):
+        value = strip_tags(value).strip()
+        if not value:
+            raise serializers.ValidationError("Title cannot be empty.")
+        return value
+
+    def validate_description(self, value):
+        value = strip_tags(value).strip()
+        if not value:
+            raise serializers.ValidationError("Description cannot be empty.")
+        return value
+
+    def validate_ended_at(self, value):
+        # Saat create, started_at akan terisi "sekarang"; saat update pakai nilai tersimpan.
+        started = self.instance.started_at if self.instance else timezone.now()
+        if value is not None and value.date() < started.date():
+            raise serializers.ValidationError("End date cannot be before the start date.")
+        return value

@@ -1,19 +1,17 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import (
-    api_view, authentication_classes, permission_classes,
+    api_view, permission_classes,
 )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from main.models import Project, Skill
+from main.models import Experience, Project, Skill
 from main.permissions import IsPortfolioOwnerOrEditorOrReadOnly, IsPortfolioOwnerOrReadOnly
-from main.serializers import ProjectSerializer, SkillSerializer
+from main.serializers import ExperienceSerializer, ProjectSerializer, SkillSerializer
 
 
 @api_view(["GET", "HEAD", "POST"])
-@authentication_classes([SessionAuthentication])
 @permission_classes([IsPortfolioOwnerOrReadOnly])
 def project_list(request):
     if request.method in ("GET", "HEAD"):
@@ -32,7 +30,6 @@ def project_list(request):
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 @api_view(["GET", "HEAD", "PUT", "PATCH", "DELETE"])
-@authentication_classes([SessionAuthentication])
 @permission_classes([IsPortfolioOwnerOrReadOnly])
 def project_detail(request, project_id):
     project = get_object_or_404(
@@ -55,7 +52,6 @@ def project_detail(request, project_id):
     return Response(serializer.data)
 
 @api_view(["POST"])
-@authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])
 def project_star(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
@@ -67,7 +63,6 @@ def project_star(request, project_id):
     return Response(serializer.data)
 
 @api_view(["GET", "HEAD", "POST"])
-@authentication_classes([SessionAuthentication])
 @permission_classes([IsPortfolioOwnerOrEditorOrReadOnly])
 def skill_list(request):
     if request.method in ("GET", "HEAD"):
@@ -85,7 +80,6 @@ def skill_list(request):
 
 
 @api_view(["GET", "HEAD", "PUT", "PATCH", "DELETE"])
-@authentication_classes([SessionAuthentication])
 @permission_classes([IsPortfolioOwnerOrEditorOrReadOnly])
 def skill_detail(request, skill_id):
     skill = get_object_or_404(
@@ -108,7 +102,6 @@ def skill_detail(request, skill_id):
 
 
 @api_view(["POST"])
-@authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])
 def skill_star(request, skill_id):
     skill = get_object_or_404(Skill, pk=skill_id)
@@ -117,3 +110,44 @@ def skill_star(request, skill_id):
     else:
         skill.starred_by.add(request.user)
     return Response(SkillSerializer(skill, context={"request": request}).data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def api_logout(request):
+    if request.auth is not None:
+        request.auth.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["GET", "HEAD", "POST"])
+@permission_classes([IsPortfolioOwnerOrReadOnly])
+def experience_list(request):
+    """GET publik (terbaru dulu); POST hanya pemilik portofolio (superuser)."""
+    if request.method in ("GET", "HEAD"):
+        experiences = Experience.objects.order_by("-started_at", "id")
+        return Response(ExperienceSerializer(experiences, many=True).data)
+
+    serializer = ExperienceSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET", "HEAD", "PUT", "PATCH", "DELETE"])
+@permission_classes([IsPortfolioOwnerOrReadOnly])
+def experience_detail(request, experience_id):
+    experience = get_object_or_404(Experience, pk=experience_id)
+    if request.method in ("GET", "HEAD"):
+        return Response(ExperienceSerializer(experience).data)
+
+    if request.method == "DELETE":
+        experience.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    serializer = ExperienceSerializer(
+        experience, data=request.data, partial=request.method == "PATCH",
+    )
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data)

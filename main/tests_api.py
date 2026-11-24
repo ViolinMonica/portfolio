@@ -5,7 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
-from main.models import Project, Skill, SkillCategory
+from main.models import Experience, Project, Skill, SkillCategory
 
 
 class ProjectAPITest(APITestCase):
@@ -33,6 +33,21 @@ class ProjectAPITest(APITestCase):
         self.assertNotIn("fields", response.data[0])
         self.assertEqual(self.client.get(self.detail_url).status_code, status.HTTP_200_OK)
 
+    def test_token_login_create_and_logout(self):
+        response = self.client.post(
+            reverse("api:api_token_auth"),
+            {"username": "owner", "password": "test-password"}, format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {response.data['token']}")
+
+        response = self.client.post(self.list_url, self.payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        logout_url = reverse("api:api_logout")
+        self.assertEqual(self.client.post(logout_url).status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(self.client.post(logout_url).status_code, status.HTTP_401_UNAUTHORIZED)
+
     def test_search_and_empty_results(self):
         response = self.client.get(self.list_url, {"title": "PORT"})
         self.assertEqual(len(response.data), 1)
@@ -44,11 +59,12 @@ class ProjectAPITest(APITestCase):
         self.assertEqual(self.client.get(url).status_code, status.HTTP_404_NOT_FOUND)
 
     def test_guest_and_visitor_cannot_write(self):
-        for user in (None, self.visitor):
+        # Guest gets 401 (TokenAuthentication adds WWW-Authenticate), visitor gets 403.
+        for user, code in ((None, 401), (self.visitor, 403)):
             self.client.force_authenticate(user=user)
-            self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, 403)
-            self.assertEqual(self.client.patch(self.detail_url, {"title": "Changed"}, format="json").status_code, 403)
-            self.assertEqual(self.client.delete(self.detail_url).status_code, 403)
+            self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, code)
+            self.assertEqual(self.client.patch(self.detail_url, {"title": "Changed"}, format="json").status_code, code)
+            self.assertEqual(self.client.delete(self.detail_url).status_code, code)
         self.assertEqual(Project.objects.count(), 1)
         self.project.refresh_from_db()
         self.assertEqual(self.project.title, "Portfolio")
@@ -87,7 +103,7 @@ class ProjectAPITest(APITestCase):
         self.assertFalse(Project.objects.filter(pk=self.project.id).exists())
 
     def test_star_requires_login_and_toggles(self):
-        self.assertEqual(self.client.post(self.star_url).status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.client.post(self.star_url).status_code, status.HTTP_401_UNAUTHORIZED)
         self.client.force_authenticate(user=self.visitor)
         response = self.client.post(self.star_url)
         self.assertTrue(response.data["is_starred"])
@@ -170,11 +186,12 @@ class SkillEditorAPITest(APITestCase):
         self.assertEqual(Skill.objects.filter(category=self.category).count(), 1)
 
     def test_guest_and_visitor_cannot_write(self):
-        for user in (None, self.visitor):
+        # Guest gets 401 (TokenAuthentication adds WWW-Authenticate), visitor gets 403.
+        for user, code in ((None, 401), (self.visitor, 403)):
             self.client.force_authenticate(user=user)
-            self.assertEqual(self.client.patch(self.detail_url, {"name": "X"}, format="json").status_code, 403)
-            self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, 403)
-            self.assertEqual(self.client.delete(self.detail_url).status_code, 403)
+            self.assertEqual(self.client.patch(self.detail_url, {"name": "X"}, format="json").status_code, code)
+            self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, code)
+            self.assertEqual(self.client.delete(self.detail_url).status_code, code)
         self.skill.refresh_from_db()
         self.assertEqual(self.skill.name, "Django")
         self.assertFalse(Skill.objects.filter(name="FastAPI").exists())
@@ -206,7 +223,7 @@ class SkillEditorAPITest(APITestCase):
         self.assertFalse(Skill.objects.filter(name="Go").exists())
 
     def test_star_uses_is_authenticated_not_editor(self):
-        self.assertEqual(self.client.post(self.star_url).status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.client.post(self.star_url).status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(self.skill.starred_by.count(), 0)
         self.client.force_authenticate(user=self.visitor)
         response = self.client.post(self.star_url)
@@ -272,3 +289,90 @@ class SkillEditorAPITest(APITestCase):
         response = client.post(self.star_url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertFalse(self.skill.starred_by.exists())
+
+
+class ExperienceAPITest(APITestCase):
+    """Experience API dipakai aplikasi Flutter (Tugas 9): baca publik, tulis butuh token pemilik."""
+
+    def setUp(self):
+        User.objects.create_superuser(username="owner", password="test-password")
+        self.visitor = User.objects.create_user(username="visitor", password="test-password")
+        self.experience = Experience.objects.create(
+            title="Asisten Dosen", description="PBP", category="part-time",
+        )
+        self.list_url = reverse("api:experience-list")
+        self.detail_url = reverse("api:experience-detail", args=[self.experience.id])
+        self.payload = {
+            "title": "Magang Backend", "description": "Membangun REST API",
+            "category": "internship", "ended_at": None,
+        }
+
+    def login_with_token(self):
+        response = self.client.post(
+            reverse("api:api_token_auth"),
+            {"username": "owner", "password": "test-password"}, format="json",
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {response.data['token']}")
+
+    def test_public_list_and_detail(self):
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]["id"], str(self.experience.id))
+        self.assertTrue(response.data[0]["is_ongoing"])
+        self.assertNotIn("thumbnail", response.data[0])
+        response = self.client.get(self.detail_url)
+        self.assertEqual(response.data["category"], "part-time")
+
+    def test_missing_experience(self):
+        url = reverse("api:experience-detail", args=[uuid.uuid4()])
+        self.assertEqual(self.client.get(url).status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_guest_and_visitor_cannot_write(self):
+        for user, code in ((None, 401), (self.visitor, 403)):
+            self.client.force_authenticate(user=user)
+            self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, code)
+            self.assertEqual(self.client.patch(self.detail_url, {"title": "X"}, format="json").status_code, code)
+            self.assertEqual(self.client.delete(self.detail_url).status_code, code)
+        self.assertEqual(Experience.objects.count(), 1)
+
+    def test_revoked_token_gets_401(self):
+        self.client.credentials(HTTP_AUTHORIZATION="Token not-a-real-token")
+        response = self.client.post(self.list_url, self.payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_token_create_patch_delete(self):
+        self.login_with_token()
+        response = self.client.post(
+            self.list_url, {**self.payload, "id": str(uuid.uuid4()), "started_at": "2000-01-01T00:00:00Z"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        created = Experience.objects.get(pk=response.data["id"])
+        # id dan started_at dari klien diabaikan.
+        self.assertNotEqual(created.started_at.year, 2000)
+
+        response = self.client.patch(self.detail_url, {"ended_at": "2999-01-01T00:00:00Z"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data["is_ongoing"])
+        self.experience.refresh_from_db()
+        self.assertEqual(self.experience.title, "Asisten Dosen")
+
+        response = self.client.patch(self.detail_url, {"ended_at": None}, format="json")
+        self.assertTrue(response.data["is_ongoing"])
+
+        self.assertEqual(self.client.delete(self.detail_url).status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Experience.objects.filter(pk=self.experience.id).exists())
+
+    def test_validation(self):
+        self.login_with_token()
+        for changes, field in [
+            ({"title": "   "}, "title"),
+            ({"title": "<b></b>"}, "title"),
+            ({"description": ""}, "description"),
+            ({"category": "hobby"}, "category"),
+            ({"ended_at": "2000-01-01T00:00:00Z"}, "ended_at"),
+        ]:
+            response = self.client.post(self.list_url, {**self.payload, **changes}, format="json")
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, changes)
+            self.assertIn(field, response.data)
+        self.assertEqual(Experience.objects.count(), 1)

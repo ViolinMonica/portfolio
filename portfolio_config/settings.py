@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-k(5zn%kh07&ihl3uli13fy*0(_n41fwu8h!gyus^l+hb#6_2cf
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "violin-monica-portofolio.pws.cs.ui.ac.id"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "10.0.2.2", "violin-monica-portofolio.pws.cs.ui.ac.id"]
 
 # Application definition
 
@@ -40,11 +40,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'main',
+    'corsheaders',
     'rest_framework',
+    'rest_framework.authtoken',
+    'main',
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -54,6 +57,15 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+}
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = ['https://violin-monica-portofolio.pws.cs.ui.ac.id']
 ROOT_URLCONF = 'portfolio_config.urls'
