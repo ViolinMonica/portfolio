@@ -177,6 +177,29 @@ dikirim langsung tanpa membuka halamannya.
 | DELETE | `/api/v1/skills/<uuid>/` | superuser | 204 / 403 / 404 |
 | POST | `/api/v1/skills/<uuid>/star/` | sudah login | 200 (toggle star) / 403 / 404 |
 
+### Endpoint API untuk aplikasi Flutter (Tutorial 10 & Tugas 9)
+
+Penulisan lewat API menerima `Authorization: Token <key>` (dipakai aplikasi
+[myportfolio_mobile](https://github.com/ViolinMonica/myportfolio_mobile)) dan
+tetap menerima session + CSRF (dipakai halaman web dan Browsable API).
+
+| Method | URL | Akses | Respons |
+|---|---|---|---|
+| POST | `/api/v1/auth/token/` | semua | 200 `{"token": "..."}` / 400 |
+| POST | `/api/v1/auth/logout/` | token | 204 (token dihapus) / 401 |
+| GET | `/api/v1/experiences/` | semua | 200, terbaru dulu |
+| POST | `/api/v1/experiences/` | superuser | 201 / 400 / 401 / 403 |
+| GET | `/api/v1/experiences/<uuid>/` | semua | 200 / 404 |
+| PUT, PATCH | `/api/v1/experiences/<uuid>/` | superuser | 200 / 400 / 401 / 403 / 404 |
+| DELETE | `/api/v1/experiences/<uuid>/` | superuser | 204 / 401 / 403 / 404 |
+
+Field Experience: `id` dan `started_at` diisi server (read-only), `title`,
+`description`, `category` (salah satu `EXPERIENCE_CHOICES`), `ended_at`
+(boleh `null` = masih berjalan, tidak boleh sebelum tanggal mulai), dan
+`is_ongoing` (read-only). `thumbnail` belum dibuka lewat API karena aplikasi
+mobile belum mendukung upload file. `10.0.2.2` (alamat host dari emulator
+Android) ditambahkan ke `ALLOWED_HOSTS` untuk pengembangan lokal.
+
 Browsable API bisa dibuka langsung di browser pada URL di atas. Login untuk
 Browsable API tersedia di `/api-auth/login/`.
 
